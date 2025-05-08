@@ -1,0 +1,154 @@
+[
+  {
+    "id": 1,
+    "name": "Team Alpha",
+    "logo": "/placeholder.svg?height=40&width=40",
+    "group": "A",
+    "players": [
+      { "id": 1, "name": "John Doe", "number": 1, "position": "GK" },
+      { "id": 2, "name": "James Smith", "number": 2, "position": "DF" },
+      { "id": 3, "name": "Robert Johnson", "number": 4, "position": "DF" },
+      { "id": 4, "name": "Michael Williams", "number": 5, "position": "DF" },
+      { "id": 5, "name": "David Brown", "number": 3, "position": "DF" },
+      { "id": 6, "name": "Richard Jones", "number": 6, "position": "MF" },
+      { "id": 7, "name": "Joseph Davis", "number": 8, "position": "MF" },
+      { "id": 8, "name": "Thomas Miller", "number": 10, "position": "MF" },
+      { "id": 9, "name": "Charles Wilson", "number": 7, "position": "FW" },
+      { "id": 10, "name": "Daniel Moore", "number": 9, "position": "FW" },
+      { "id": 11, "name": "Matthew Taylor", "number": 11, "position": "FW" }
+    ],
+    "stats": {
+      "played": 2,
+      "won": 2,
+      "drawn": 0,
+      "lost": 0,
+      "gf": 5,
+      "ga": 1,
+      "points": 6
+    }
+  },
+  {
+    "id": 2,
+    "name": "Team Beta",
+    "logo": "/placeholder.svg?height=40&width=40",
+    "group": "A",
+    "players": [
+      { "id": 12, "name": "Kevin Harris", "number": 1, "position": "GK" },
+      { "id": 13, "name": "Brian Martin", "number": 2, "position": "DF" },
+      { "id": 14, "name": "George Thompson", "number": 4, "position": "DF" },
+      { "id": 15, "name": "Edward Garcia", "number": 5, "position": "DF" },
+      { "id": 16, "name": "Ronald Martinez", "number": 3, "position": "DF" },
+      { "id": 17, "name": "Anthony Robinson", "number": 6, "position": "MF" },
+      { "id": 18, "name": "Donald Clark", "number": 8, "position": "MF" },
+      { "id": 19, "name": "Steven Rodriguez", "number": 10, "position": "MF" },
+      { "id": 20, "name": "Charles Lewis", "number": 7, "position": "FW" },
+      { "id": 21, "name": "Kenneth Lee", "number": 9, "position": "FW" },
+      { "id": 22, "name": "Jason Walker", "number": 11, "position": "FW" }
+    ],
+    "stats": {
+      "played": 2,
+      "won": 1,
+      "drawn": 0,
+      "lost": 1,
+      "gf": 3,
+      "ga": 2,
+      "points": 3
+    }
+  },
+  {
+    "id": 3,
+    "name": "Team Gamma",
+    "logo": "/placeholder.svg?height=40&width=40",
+    "group": "A",
+    "players": [],
+    "stats": {
+      "played": 2,
+      "won": 0,
+      "drawn": 1,
+      "lost": 1,
+      "gf": 1,
+      "ga": 3,
+      "points": 1
+    }
+  },
+  {
+    "id": 4,
+    "name": "Team Delta",
+    "logo": "/placeholder.svg?height=40&width=40",
+    "group": "A",
+    "players": [],
+    "stats": {
+      "played": 2,
+      "won": 0,
+      "drawn": 1,
+      "lost": 1,
+      "gf": 0,
+      "ga": 3,
+      "points": 1
+    }
+  },
+  {
+    "id": 5,
+    "name": "Team Epsilon",
+    "logo": "/placeholder.svg?height=40&width=40",
+    "group": "B",
+    "players": [],
+    "stats": {
+      "played": 2,
+      "won": 1,
+      "drawn": 1,
+      "lost": 0,
+      "gf": 3,
+      "ga": 1,
+      "points": 4
+    }
+  },
+  {
+    "id": 6,
+    "name": "Team Zeta",
+    "logo": "/placeholder.svg?height=40&width=40",
+    "group": "B",
+    "players": [],
+    "stats": {
+      "played": 2,
+      "won": 1,
+      "drawn": 0,
+      "lost": 1,
+      "gf": 2,
+      "ga": 2,
+      "points": 3
+    }
+  },
+  {
+    "id": 7,
+    "name": "Team Eta",
+    "logo": "/placeholder.svg?height=40&width=40",
+    "group": "B",
+    "players": [],
+    "stats": {
+      "played": 2,
+      "won": 0,
+      "drawn": 2,
+      "lost": 0,
+      "gf": 1,
+      "ga": 1,
+      "points": 2
+    }
+  },
+  {
+    "id": 8,
+    "name": "Team Theta",
+    "logo": "/placeholder.svg?height=40&width=40",
+    "group": "B",
+    "players": [],
+    "stats": {
+      "played": 2,
+      "won": 0,
+      "drawn": 1,
+      "lost": 1,
+      "gf": 0,
+      "ga": 2,
+      "points": 1
+    }
+  }
+]

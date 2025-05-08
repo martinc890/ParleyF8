@@ -1,0 +1,35 @@
+[
+  {
+    "id": 1,
+    "title": "Opening Party",
+    "date": "2023-06-01",
+    "time": "20:00",
+    "location": "City Club",
+    "address": "123 Main Street, Downtown",
+    "type": "party",
+    "description": "Join us for the tournament opening celebration with live music and special guests. All teams and fans are welcome to attend this special event marking the beginning of our tournament.",
+    "image": "/placeholder.svg?height=300&width=500"
+  },
+  {
+    "id": 2,
+    "title": "Fan Zone Opening",
+    "date": "2023-06-05",
+    "time": "16:00",
+    "location": "Main Square",
+    "address": "Central Square, Downtown",
+    "type": "fan",
+    "description": "The official fan zone opens with activities, games, and food stalls for all supporters. Come experience the tournament atmosphere with fellow fans and enjoy various activities for all ages.",
+    "image": "/placeholder.svg?height=300&width=500"
+  },
+  {
+    "id": 3,
+    "title": "Mid-Tournament Concert",
+    "date": "2023-06-15",
+    "time": "21:00",
+    "location": "City Arena",
+    "address": "456 Stadium Road",
+    "type": "concert",
+    "description": "Special concert featuring local bands and international artists to celebrate the tournament. This will be the biggest musical event of the tournament with performances from top artists.",
+    "image": "/placeholder.svg?height=300&width=500"
+  }
+]

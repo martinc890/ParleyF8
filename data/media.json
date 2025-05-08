@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "type": "image",
+    "thumbnail": "/placeholder.svg?height=300&width=500",
+    "title": "Opening Ceremony Highlights",
+    "date": "2023-06-01",
+    "matchday": "Opening Day"
+  },
+  {
+    "id": 2,
+    "type": "video",
+    "thumbnail": "/placeholder.svg?height=300&width=500",
+    "title": "Team Alpha vs Team Beta - Match Highlights",
+    "date": "2023-06-05",
+    "matchday": "Matchday 1"
+  },
+  {
+    "id": 3,
+    "type": "image",
+    "thumbnail": "/placeholder.svg?height=300&width=500",
+    "title": "Team Gamma Training Session",
+    "date": "2023-06-07",
+    "matchday": "Training"
+  },
+  {
+    "id": 4,
+    "type": "video",
+    "thumbnail": "/placeholder.svg?height=300&width=500",
+    "title": "Team Epsilon vs Team Zeta - Goals Compilation",
+    "date": "2023-06-08",
+    "matchday": "Matchday 2"
+  }
+]

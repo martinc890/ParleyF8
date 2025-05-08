@@ -1,0 +1,78 @@
+[
+  {
+    "id": 1,
+    "date": "2023-06-10",
+    "time": "18:00",
+    "homeTeam": 1,
+    "awayTeam": 2,
+    "homeScore": null,
+    "awayScore": null,
+    "group": "A",
+    "stadium": "Main Stadium",
+    "phase": "group",
+    "status": "upcoming"
+  },
+  {
+    "id": 2,
+    "date": "2023-06-12",
+    "time": "20:00",
+    "homeTeam": 3,
+    "awayTeam": 4,
+    "homeScore": null,
+    "awayScore": null,
+    "group": "B",
+    "stadium": "City Arena",
+    "phase": "group",
+    "status": "upcoming"
+  },
+  {
+    "id": 3,
+    "date": "2023-06-05",
+    "time": "18:00",
+    "homeTeam": 5,
+    "awayTeam": 6,
+    "homeScore": 2,
+    "awayScore": 1,
+    "group": "A",
+    "stadium": "Main Stadium",
+    "phase": "group",
+    "status": "completed"
+  },
+  {
+    "id": 4,
+    "date": "2023-06-03",
+    "time": "20:00",
+    "homeTeam": 7,
+    "awayTeam": 8,
+    "homeScore": 0,
+    "awayScore": 0,
+    "group": "B",
+    "stadium": "City Arena",
+    "phase": "group",
+    "status": "completed"
+  },
+  {
+    "id": 5,
+    "date": "2023-07-01",
+    "time": "18:00",
+    "homeTeam": 1,
+    "awayTeam": 5,
+    "homeScore": null,
+    "awayScore": null,
+    "stadium": "Main Stadium",
+    "phase": "quarter",
+    "status": "upcoming"
+  },
+  {
+    "id": 6,
+    "date": "2023-07-01",
+    "time": "20:00",
+    "homeTeam": 2,
+    "awayTeam": 6,
+    "homeScore": null,
+    "awayScore": null,
+    "stadium": "City Arena",
+    "phase": "quarter",
+    "status": "upcoming"
+  }
+]
