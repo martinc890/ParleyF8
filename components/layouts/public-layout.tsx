@@ -164,7 +164,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
       {/* Footer */}
       <footer className="py-6 border-t bg-black">
         <div className="container px-4 mx-auto">
-          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+          <div className="flex flex-col items-center justify-center">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 overflow-hidden">
                 <Image
@@ -177,24 +177,13 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
               </div>
               <span className="text-sm font-medium text-white">PARLEY - Torneo de Fútbol 2023</span>
             </div>
-            <div className="flex items-center gap-4">
-              <Link href="/privacy" className="text-sm text-gray-400 hover:text-white">
-                Política de Privacidad
-              </Link>
-              <Link href="/terms" className="text-sm text-gray-400 hover:text-white">
-                Términos de Servicio
-              </Link>
-              <Link href="/contact" className="text-sm text-gray-400 hover:text-white">
-                Contacto
-              </Link>
-            </div>
           </div>
         </div>
       </footer>
 
-      {/* Bottom navigation for mobile */}
-      <div className="sticky bottom-0 z-40 md:hidden border-t bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/60">
-        <div className="grid grid-cols-5 h-16">
+      {/* Bottom navigation for mobile - Adjusted for iOS slider */}
+      <div className="sticky bottom-0 z-40 md:hidden border-t bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/60 pb-safe">
+        <div className="grid grid-cols-5 h-14">
           {mobileNavItems.map((item) => (
             <Link
               key={item.name}

@@ -62,14 +62,7 @@ export default function ClientHome() {
                 <Button size="sm" asChild className="bg-white text-black hover:bg-gray-200 sm:size-lg">
                   <Link href="/matches">Ver Partidos</Link>
                 </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="bg-transparent text-white border-white/20 hover:bg-white/10 hover:text-white sm:size-lg"
-                  asChild
-                >
-                  <Link href="/teams">Explorar Equipos</Link>
-                </Button>
+                {/* Botón "Explorar Equipos" eliminado */}
               </div>
             </div>
           </div>

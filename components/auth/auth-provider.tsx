@@ -7,10 +7,8 @@ import type { User, UserRole } from "@/lib/auth-types"
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string, role?: string) => Promise<boolean>
+  login: (email: string, password: string, role: UserRole) => Promise<boolean>
   logout: () => void
-  isLoading: boolean
-  error: string | null
   isAdmin: () => boolean
   isCaptain: () => boolean
   isPlayer: () => boolean
@@ -20,92 +18,83 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [isInitialized, setIsInitialized] = useState(false)
   const router = useRouter()
 
-  // Cargar usuario del localStorage al iniciar
+  // Check if user is already logged in
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem("user")
-      if (storedUser) {
+    const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null
+    if (storedUser) {
+      try {
         setUser(JSON.parse(storedUser))
+      } catch (error) {
+        console.error("Error parsing stored user:", error)
+        localStorage.removeItem("user")
       }
-      setIsInitialized(true)
-    } catch (e) {
-      console.error("Error accessing localStorage:", e)
-      setIsInitialized(true)
     }
   }, [])
 
-  const login = async (email: string, password: string, role = "admin"): Promise<boolean> => {
-    setIsLoading(true)
-    setError(null)
-
+  const login = async (email: string, password: string, role: UserRole): Promise<boolean> => {
+    // In a real app, this would be an API call
+    // For demo purposes, we'll just simulate a successful login
     try {
-      // Simulación de login
+      // Simulate API delay
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      // Validación simple
-      if (email.length < 5 || !email.includes("@") || password.length < 4) {
-        throw new Error("Credenciales inválidas")
-      }
-
-      // Crear usuario según el rol seleccionado
-      let newUser: User
+      let mockUser: User
 
       if (role === "admin") {
-        newUser = {
-          id: "admin-1",
-          name: "Administrador",
+        mockUser = {
+          id: "admin-123",
+          name: "Admin User",
           email,
-          role: "admin" as UserRole,
-          teamId: null,
+          role: "admin",
         }
       } else if (role === "captain") {
-        newUser = {
-          id: "captain-1",
-          name: "Capitán Equipo A",
+        mockUser = {
+          id: "captain-123",
+          name: "Captain User",
           email,
-          role: "captain" as UserRole,
-          teamId: "team-1",
+          role: "captain",
+          teamId: "team-1", // Asignamos el equipo 1 al capitán
         }
       } else {
-        // Default to player
-        newUser = {
-          id: "player-1",
-          name: "Jugador Ejemplo",
+        mockUser = {
+          id: "player-123",
+          name: "Player User",
           email,
-          role: "player" as UserRole,
-          teamId: "team-1",
+          role: "player",
+          teamId: "team-2", // Asignamos el equipo 2 al jugador
         }
       }
 
-      // Guardar en localStorage
-      try {
-        localStorage.setItem("user", JSON.stringify(newUser))
-      } catch (e) {
-        console.error("Error saving to localStorage:", e)
+      setUser(mockUser)
+
+      // Store user in localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(mockUser))
       }
 
-      setUser(newUser)
-      setIsLoading(false)
+      // Redirect based on role
+      if (role === "admin") {
+        router.push("/admin/dashboard")
+      } else if (role === "captain") {
+        router.push("/captain/dashboard")
+      } else {
+        router.push("/player/dashboard")
+      }
+
       return true
-    } catch (err: any) {
-      setError(err.message || "Error al iniciar sesión")
-      setIsLoading(false)
+    } catch (error) {
+      console.error("Login error:", error)
       return false
     }
   }
 
   const logout = () => {
-    try {
-      localStorage.removeItem("user")
-    } catch (e) {
-      console.error("Error removing from localStorage:", e)
-    }
     setUser(null)
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("user")
+    }
     router.push("/")
   }
 
@@ -121,12 +110,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return user?.role === "player"
   }
 
-  if (!isInitialized) {
-    return <div>Cargando...</div>
-  }
-
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading, error, isAdmin, isCaptain, isPlayer }}>
+    <AuthContext.Provider value={{ user, login, logout, isAdmin, isCaptain, isPlayer }}>
       {children}
     </AuthContext.Provider>
   )

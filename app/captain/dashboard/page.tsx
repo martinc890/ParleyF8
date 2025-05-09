@@ -58,44 +58,44 @@ export default function CaptainDashboard() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium">Jugadores</CardTitle>
-              <Users className="w-4 h-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{players.length}</div>
-              <Button variant="link" className="p-0 h-auto" asChild>
-                <Link href="/captain/team">Gestionar Equipo</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <Link href="/captain/team" className="block">
+            <Card className="h-full transition-all hover:bg-gray-100 cursor-pointer">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-sm font-medium">Jugadores</CardTitle>
+                <Users className="w-4 h-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{players.length}</div>
+                <p className="text-xs text-muted-foreground">Haz clic para gestionar tu equipo</p>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium">Invitaciones</CardTitle>
-              <Mail className="w-4 h-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">5</div>
-              <Button variant="link" className="p-0 h-auto" asChild>
-                <Link href="/captain/invitations">Gestionar Invitaciones</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <Link href="/captain/invitations" className="block">
+            <Card className="h-full transition-all hover:bg-gray-100 cursor-pointer">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-sm font-medium">Invitaciones</CardTitle>
+                <Mail className="w-4 h-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">5</div>
+                <p className="text-xs text-muted-foreground">Haz clic para gestionar invitaciones</p>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium">Próximos Partidos</CardTitle>
-              <Trophy className="w-4 h-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{upcomingMatches.length}</div>
-              <Button variant="link" className="p-0 h-auto" asChild>
-                <Link href="/matches">Ver Calendario</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <Link href="/matches" className="block">
+            <Card className="h-full transition-all hover:bg-gray-100 cursor-pointer">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-sm font-medium">Próximos Partidos</CardTitle>
+                <Trophy className="w-4 h-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{upcomingMatches.length}</div>
+                <p className="text-xs text-muted-foreground">Haz clic para ver el calendario</p>
+              </CardContent>
+            </Card>
+          </Link>
 
           <Link href="/player/card" className="block">
             <Card className="h-full transition-all hover:bg-gray-100 cursor-pointer">
