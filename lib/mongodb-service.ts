@@ -55,13 +55,12 @@ if (typeof window !== "undefined") {
 
 export const getTeams = async (): Promise<TeamModel[]> => {
   // Cuando implementes MongoDB, reemplaza esto con una llamada a la API
-  return teams
+  return []
 }
 
-export const getTeamById = async (id: string): Promise<TeamModel | null> => {
-  // Cuando implementes MongoDB, reemplaza esto con una llamada a la API
-  const team = teams.find((t) => t._id === id)
-  return team || null
+export const getTeamById = async (teamId: string): Promise<TeamModel | null> => {
+  // En una implementación real, esto consultaría MongoDB
+  return null
 }
 
 export const createTeam = async (team: TeamModel): Promise<TeamModel> => {
@@ -101,9 +100,8 @@ export const deleteTeam = async (id: string): Promise<boolean> => {
 
 // ==================== JUGADORES ====================
 
-export const getPlayers = async (): Promise<PlayerModel[]> => {
-  // Cuando implementes MongoDB, reemplaza esto con una llamada a la API
-  return players
+export const getPlayers = async (teamId?: string): Promise<PlayerModel[]> => {
+  return []
 }
 
 export const getPlayerById = async (id: string): Promise<PlayerModel | null> => {
@@ -417,13 +415,13 @@ export const deleteMedia = async (id: string): Promise<boolean> => {
 // ==================== ESTADÍSTICAS ====================
 
 export const getTopScorers = async (limit = 10): Promise<PlayerModel[]> => {
-  // Cuando implementes MongoDB, reemplaza esto con una llamada a la API
-  return [...players].sort((a, b) => (b.stats?.goals || 0) - (a.stats?.goals || 0)).slice(0, limit)
+  // En una implementación real, esto consultaría MongoDB
+  return []
 }
 
 export const getTopAssists = async (limit = 10): Promise<PlayerModel[]> => {
-  // Cuando implementes MongoDB, reemplaza esto con una llamada a la API
-  return [...players].sort((a, b) => (b.stats?.assists || 0) - (a.stats?.assists || 0)).slice(0, limit)
+  // En una implementación real, esto consultaría MongoDB
+  return []
 }
 
 // ==================== CALENDARIO ====================

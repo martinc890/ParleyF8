@@ -9,19 +9,7 @@ import { usePathname } from "next/navigation"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/components/auth/auth-provider"
-import {
-  Home,
-  Calendar,
-  Trophy,
-  Users,
-  ImageIcon,
-  Music,
-  Menu,
-  X,
-  LogIn,
-  LogOut,
-  ClubIcon as Football,
-} from "lucide-react"
+import { Home, Calendar, Trophy, Users, ImageIcon, Menu, X, LogIn, LogOut, ClubIcon as Football } from "lucide-react"
 
 interface PublicLayoutProps {
   children: React.ReactNode
@@ -43,7 +31,6 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
     { name: "Grupos", href: "/groups", icon: Users },
     { name: "Playoffs", href: "/playoffs", icon: Trophy },
     { name: "Galería", href: "/media", icon: ImageIcon },
-    { name: "Eventos", href: "/events", icon: Music },
     { name: "Calendario", href: "/calendar", icon: Calendar },
   ]
 
@@ -91,11 +78,17 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
 
             <div className="flex items-center gap-2">
               <ModeToggle />
-              {isAdmin() ? (
+              {user ? (
                 <>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href="/admin/dashboard">Admin</Link>
-                  </Button>
+                  {isAdmin() ? (
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href="/admin/dashboard">Admin</Link>
+                    </Button>
+                  ) : (
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={user.role === "captain" ? "/captain/dashboard" : "/player/dashboard"}>Dashboard</Link>
+                    </Button>
+                  )}
                   <Button variant="outline" size="sm" onClick={logout}>
                     <LogOut className="w-4 h-4 mr-2" />
                     Salir
@@ -105,7 +98,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                 <Button variant="outline" size="sm" asChild>
                   <Link href="/login">
                     <LogIn className="w-4 h-4 mr-2" />
-                    Admin
+                    Login
                   </Link>
                 </Button>
               )}
@@ -134,11 +127,19 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
               </Link>
             ))}
             <div className="mt-4 pt-4 border-t border-gray-800">
-              {isAdmin() ? (
+              {user ? (
                 <>
-                  <Button className="w-full mb-2 bg-white text-black hover:bg-gray-200" asChild>
-                    <Link href="/admin/dashboard">Panel de Administración</Link>
-                  </Button>
+                  {isAdmin() ? (
+                    <Button className="w-full mb-2 bg-white text-black hover:bg-gray-200" asChild>
+                      <Link href="/admin/dashboard">Panel de Administración</Link>
+                    </Button>
+                  ) : (
+                    <Button className="w-full mb-2 bg-white text-black hover:bg-gray-200" asChild>
+                      <Link href={user.role === "captain" ? "/captain/dashboard" : "/player/dashboard"}>
+                        Mi Dashboard
+                      </Link>
+                    </Button>
+                  )}
                   <Button variant="outline" className="w-full" onClick={logout}>
                     <LogOut className="w-4 h-4 mr-2" />
                     Cerrar Sesión
@@ -148,7 +149,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                 <Button className="w-full bg-white text-black hover:bg-gray-200" asChild>
                   <Link href="/login">
                     <LogIn className="w-4 h-4 mr-2" />
-                    Admin
+                    Iniciar Sesión
                   </Link>
                 </Button>
               )}

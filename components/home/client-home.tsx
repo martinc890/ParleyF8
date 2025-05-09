@@ -6,7 +6,7 @@ import PublicLayout from "@/components/layouts/public-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Users, ImageIcon, Music, ClubIcon as Football } from "lucide-react"
+import { Users, ImageIcon, ClubIcon as Football } from "lucide-react"
 import { EmptyState } from "@/components/ui/empty-state"
 import { getUpcomingMatches, getTeamById } from "@/lib/data-service"
 import SyncGuide from "@/components/home/sync-guide"
@@ -191,25 +191,6 @@ export default function ClientHome() {
               action={
                 <Button variant="outline" size="sm" asChild className="mt-2">
                   <Link href="/media">Ver Galería</Link>
-                </Button>
-              }
-            />
-          </CardContent>
-        </Card>
-
-        {/* Upcoming Events - Optimizado para móvil */}
-        <Card>
-          <CardHeader className="pb-2 sm:pb-3">
-            <CardTitle className="text-base sm:text-lg">Próximos Eventos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <EmptyState
-              icon={Music}
-              title="No hay próximos eventos"
-              description="Los eventos aparecerán aquí una vez que sean programados."
-              action={
-                <Button variant="outline" size="sm" asChild className="mt-2">
-                  <Link href="/events">Ver Todos los Eventos</Link>
                 </Button>
               }
             />

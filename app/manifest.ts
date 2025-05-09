@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "PARLEY - Torneo de Fútbol",
-    short_name: "PARLEY",
-    description: "Aplicación moderna para la gestión de torneos de fútbol",
+    name: "Parley - Torneo de Fútbol",
+    short_name: "Parley",
+    description: "Aplicación oficial del torneo de fútbol Parley",
     start_url: "/",
     display: "standalone",
     background_color: "#000000",

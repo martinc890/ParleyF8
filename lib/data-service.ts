@@ -1,7 +1,5 @@
 import type { Team, Player, Match, Event, Media, CalendarItem } from "./types"
-
-// Importar el servicio configurado (MongoDB o localStorage)
-import dbService from "./db-config"
+import { initializeMockData } from "./mock-data"
 
 // Inicializar los datos como arrays vacíos
 let teams: Team[] = []
@@ -19,10 +17,16 @@ function initializeData() {
   // Intentar cargar datos desde localStorage
   loadDataFromLocalStorage()
 
+  // Si no hay datos, crear datos mock
+  if (teams.length === 0 || players.length === 0 || matches.length === 0) {
+    const mockData = initializeMockData()
+    teams = mockData.teams
+    players = mockData.players
+    matches = mockData.matches
+    saveDataToLocalStorage()
+  }
+
   // Si no hay datos, crear arrays vacíos
-  if (!teams) teams = []
-  if (!players) players = []
-  if (!matches) matches = []
   if (!events) events = []
   if (!media) media = []
   if (!calendar) calendar = []
@@ -30,17 +34,17 @@ function initializeData() {
 
 // Funciones para equipos
 export function getAllTeams(): Team[] {
-  if (!teams) initializeData()
+  if (!teams || teams.length === 0) initializeData()
   return teams
 }
 
 export function getTeamById(id: string): Team | undefined {
-  if (!teams) initializeData()
+  if (!teams || teams.length === 0) initializeData()
   return teams.find((team) => team.id === id)
 }
 
 export function getTeamsByGroup(group: string): Team[] {
-  if (!teams) initializeData()
+  if (!teams || teams.length === 0) initializeData()
   return teams.filter((team) => team.group === group)
 }
 
@@ -64,17 +68,17 @@ export function deleteTeam(id: string): void {
 
 // Funciones para jugadores
 export function getAllPlayers(): Player[] {
-  if (!players) initializeData()
+  if (!players || players.length === 0) initializeData()
   return players
 }
 
 export function getPlayerById(id: string): Player | undefined {
-  if (!players) initializeData()
+  if (!players || players.length === 0) initializeData()
   return players.find((player) => player.id === id)
 }
 
 export function getPlayersByTeam(teamId: string): Player[] {
-  if (!players) initializeData()
+  if (!players || players.length === 0) initializeData()
   return players.filter((player) => player.teamId === teamId)
 }
 
@@ -98,27 +102,27 @@ export function deletePlayer(id: string): void {
 
 // Funciones para partidos
 export function getAllMatches(): Match[] {
-  if (!matches) initializeData()
+  if (!matches || matches.length === 0) initializeData()
   return matches
 }
 
 export function getMatchById(id: string): Match | undefined {
-  if (!matches) initializeData()
+  if (!matches || matches.length === 0) initializeData()
   return matches.find((match) => match.id === id)
 }
 
 export function getMatchesByPhase(phase: string): Match[] {
-  if (!matches) initializeData()
+  if (!matches || matches.length === 0) initializeData()
   return matches.filter((match) => match.phase === phase)
 }
 
 export function getUpcomingMatches(): Match[] {
-  if (!matches) initializeData()
+  if (!matches || matches.length === 0) initializeData()
   return matches.filter((match) => match.status === "upcoming")
 }
 
 export function getCompletedMatches(): Match[] {
-  if (!matches) initializeData()
+  if (!matches || matches.length === 0) initializeData()
   return matches.filter((match) => match.status === "completed")
 }
 
@@ -244,8 +248,108 @@ export function getEnrichedMatches(): any[] {
       ...match,
       homeTeam,
       awayTeam,
+      homeScore: match.score?.home || 0,
+      awayScore: match.score?.away || 0,
     }
   })
+}
+
+// Función para obtener un partido enriquecido con toda la información
+export function getEnrichedMatch(id: string): any {
+  const match = getMatchById(id)
+  if (!match) return null
+
+  const homeTeam = getTeamById(match.homeTeamId)
+  const awayTeam = getTeamById(match.awayTeamId)
+
+  // Obtener jugadores de ambos equipos
+  const homePlayers = getPlayersByTeam(match.homeTeamId)
+  const awayPlayers = getPlayersByTeam(match.awayTeamId)
+
+  // Separar titulares y suplentes (asumiendo que los primeros 8 son titulares)
+  const homeStartingXI = homePlayers.slice(0, 8)
+  const homeSubstitutes = homePlayers.slice(8)
+
+  const awayStartingXI = awayPlayers.slice(0, 8)
+  const awaySubstitutes = awayPlayers.slice(8)
+
+  // Calcular estadísticas del partido
+  const stats = {
+    possession: { home: 50, away: 50 },
+    shots: { home: 0, away: 0 },
+    shotsOnTarget: { home: 0, away: 0 },
+    corners: { home: 0, away: 0 },
+    fouls: { home: 0, away: 0 },
+    yellowCards: { home: 0, away: 0 },
+    redCards: { home: 0, away: 0 },
+  }
+
+  // Si el partido está completado, generar estadísticas realistas
+  if (match.status === "completed") {
+    // Posesión
+    stats.possession.home = Math.floor(Math.random() * 30) + 35 // Entre 35% y 65%
+    stats.possession.away = 100 - stats.possession.home
+
+    // Tiros
+    stats.shots.home = Math.floor(Math.random() * 15) + 5 // Entre 5 y 20
+    stats.shots.away = Math.floor(Math.random() * 15) + 5 // Entre 5 y 20
+
+    // Tiros a puerta (siempre menor o igual que los tiros totales)
+    stats.shotsOnTarget.home = Math.floor(Math.random() * (stats.shots.home + 1))
+    stats.shotsOnTarget.away = Math.floor(Math.random() * (stats.shots.away + 1))
+
+    // Córners
+    stats.corners.home = Math.floor(Math.random() * 10) + 1 // Entre 1 y 10
+    stats.corners.away = Math.floor(Math.random() * 10) + 1 // Entre 1 y 10
+
+    // Faltas
+    stats.fouls.home = Math.floor(Math.random() * 15) + 5 // Entre 5 y 20
+    stats.fouls.away = Math.floor(Math.random() * 15) + 5 // Entre 5 y 20
+
+    // Contar tarjetas de los eventos del partido
+    match.events.forEach((event) => {
+      if (event.type === "yellowCard") {
+        if (event.teamId === match.homeTeamId) {
+          stats.yellowCards.home++
+        } else {
+          stats.yellowCards.away++
+        }
+      } else if (event.type === "redCard") {
+        if (event.teamId === match.homeTeamId) {
+          stats.redCards.home++
+        } else {
+          stats.redCards.away++
+        }
+      }
+    })
+  }
+
+  return {
+    ...match,
+    homeTeam,
+    awayTeam,
+    homeStartingXI,
+    homeSubstitutes,
+    awayStartingXI,
+    awaySubstitutes,
+    stats,
+  }
+}
+
+// Función para obtener los próximos partidos de un equipo
+export function getUpcomingMatchesByTeam(teamId: string): Match[] {
+  if (!matches || matches.length === 0) initializeData()
+  return matches.filter(
+    (match) => (match.homeTeamId === teamId || match.awayTeamId === teamId) && match.status === "upcoming",
+  )
+}
+
+// Función para obtener los partidos pasados de un equipo
+export function getPastMatchesByTeam(teamId: string): Match[] {
+  if (!matches || matches.length === 0) initializeData()
+  return matches.filter(
+    (match) => (match.homeTeamId === teamId || match.awayTeamId === teamId) && match.status === "completed",
+  )
 }
 
 // Función para guardar todos los datos en localStorage
@@ -356,62 +460,20 @@ if (isBrowser) {
   initializeData()
 }
 
-// Exportar todas las funciones del servicio
-export const {
-  // Equipos
-  getTeams,
-  getTeamById,
-  createTeam,
-  updateTeam,
-  deleteTeam,
-
-  // Jugadores
-  getPlayers,
-  getPlayerById,
-  getPlayersByTeam,
-  createPlayer,
-  updatePlayer,
-  //deletePlayer,
-
-  // Partidos
-  getMatches,
-  //getMatchById,
-  //getMatchesByPhase,
-  getUpcomingMatches,
-  getCompletedMatches,
-  createMatch,
-  updateMatch,
-  deleteMatch,
-
-  // Eventos de partido
-  addMatchEvent,
-  removeMatchEvent,
-
-  // Eventos (no de partido)
-  getEvents,
-  getEventById,
-  createEvent,
-  updateEvent,
-  deleteEvent,
-
-  // Media
-  getMedia,
-  getMediaById,
-  getMediaByMatch,
-  createMedia,
-  updateMedia,
-  deleteMedia,
-
-  // Estadísticas
-  getTopScorers,
-  getTopAssists,
-
-  // Calendario
-  getCalendarItems,
-
-  // Utilidades
-  getEnrichedMatch,
-  getEnrichedMatches,
-} = dbService
-
-export default dbService
+// Exportar funciones adicionales para compatibilidad con la versión anterior
+export const getTeams = getAllTeams
+export const getPlayers = getAllPlayers
+export const getMatches = getAllMatches
+export const getEvents = getAllEvents
+export const getMedia = getAllMedia
+export const getTopScorers = () => {
+  return getAllPlayers()
+    .sort((a, b) => (b.stats?.goals || 0) - (a.stats?.goals || 0))
+    .slice(0, 10)
+}
+export const getTopAssists = () => {
+  return getAllPlayers()
+    .sort((a, b) => (b.stats?.assists || 0) - (a.stats?.assists || 0))
+    .slice(0, 10)
+}
+export const getCalendarItems = getAllCalendarItems

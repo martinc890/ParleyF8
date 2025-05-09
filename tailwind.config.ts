@@ -56,7 +56,7 @@ const config = {
         parley: {
           DEFAULT: "#000000",
           foreground: "#FFFFFF",
-          accent: "#1E90FF",
+          accent: "#333333",
         },
       },
       borderRadius: {
