@@ -5,11 +5,11 @@ import { Card } from "@/components/ui/card"
 import { useAuth } from "@/components/auth/auth-provider"
 import { QrCode, User, Calendar, MapPin, Mail, Phone, Info, RotateCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
 import DashboardLayout from "@/app/dashboard-layout"
 import { getPlayerById, getTeamById } from "@/lib/data-service"
 import type { Player, Team } from "@/lib/types"
 import { BackButton } from "@/components/ui/back-button"
+import { Logo } from "@/components/ui/logo"
 
 export default function PlayerCardPage() {
   const { user } = useAuth()
@@ -82,7 +82,7 @@ export default function PlayerCardPage() {
 
         <div className="flex justify-center">
           <div
-            className={`w-full max-w-md h-[520px] relative transition-all duration-700 transform-gpu ${
+            className={`w-full max-w-md h-[500px] relative transition-all duration-700 transform-gpu ${
               isFlipped ? "rotate-y-180" : ""
             }`}
             style={{
@@ -99,7 +99,7 @@ export default function PlayerCardPage() {
               <Card className="w-full h-full overflow-hidden rounded-xl shadow-xl border-2 border-black">
                 <div className="relative w-full h-full bg-gradient-to-br from-black to-gray-800 text-white p-4 flex flex-col">
                   <div className="absolute top-3 right-3">
-                    <Image src="/images/parley-icon.png" alt="Parley Logo" width={32} height={32} />
+                    <Logo size="sm" withText={false} asLink={false} />
                   </div>
 
                   <div className="flex flex-col items-center flex-grow">
@@ -165,7 +165,7 @@ export default function PlayerCardPage() {
               <Card className="w-full h-full overflow-hidden rounded-xl shadow-xl border-2 border-black">
                 <div className="relative w-full h-full bg-gradient-to-br from-gray-800 to-black text-white p-4">
                   <div className="absolute top-3 left-3">
-                    <Image src="/images/parley-icon.png" alt="Parley Logo" width={32} height={32} />
+                    <Logo size="sm" withText={false} asLink={false} />
                   </div>
 
                   <h3 className="text-lg font-bold text-center mt-8 mb-4">Información del Jugador</h3>

@@ -21,7 +21,8 @@ import {
   Play,
   RefreshCw,
 } from "lucide-react"
-import { getEnrichedMatch } from "@/lib/data-service"
+import { getEnrichedMatch } from "@/lib/supabase-service"
+import { formatFullName } from "@/lib/utils"
 
 export default function MatchDetails({ matchId }: { matchId: string }) {
   const [activeTab, setActiveTab] = useState("lineups")
@@ -30,12 +31,21 @@ export default function MatchDetails({ matchId }: { matchId: string }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Cargar datos del partido
-    const match = getEnrichedMatch(matchId)
-    if (match) {
-      setMatchData(match)
+    // Cargar datos del partido desde Supabase
+    const fetchMatchData = async () => {
+      try {
+        const match = await getEnrichedMatch(matchId)
+        if (match) {
+          setMatchData(match)
+        }
+      } catch (error) {
+        console.error("Error fetching match data:", error)
+      } finally {
+        setLoading(false)
+      }
     }
-    setLoading(false)
+
+    fetchMatchData()
   }, [matchId])
 
   if (loading) {
@@ -64,7 +74,7 @@ export default function MatchDetails({ matchId }: { matchId: string }) {
     if (!matchData.events || matchData.events.length === 0) return null
 
     const playerEvents = matchData.events.filter(
-      (event: any) => event.playerId === playerId || event.assistPlayerId === playerId,
+      (event: any) => event.player_id === playerId || event.assist_player_id === playerId,
     )
 
     if (playerEvents.length === 0) return null
@@ -72,17 +82,17 @@ export default function MatchDetails({ matchId }: { matchId: string }) {
     return (
       <div className="flex items-center gap-1 ml-2">
         {playerEvents.map((event: any, index: number) => {
-          if (event.type === "goal" && event.playerId === playerId) {
+          if (event.type === "goal" && event.player_id === playerId) {
             return <Goal key={index} className="w-3 h-3 text-primary" />
-          } else if (event.type === "goal" && event.assistPlayerId === playerId) {
+          } else if (event.type === "goal" && event.assist_player_id === playerId) {
             return <Goal key={index} className="w-3 h-3 text-gray-400" />
-          } else if (event.type === "yellowCard" && event.playerId === playerId) {
+          } else if (event.type === "yellowCard" && event.player_id === playerId) {
             return <div key={index} className="w-3 h-4 bg-yellow-400 rounded-sm" />
-          } else if (event.type === "redCard" && event.playerId === playerId) {
+          } else if (event.type === "redCard" && event.player_id === playerId) {
             return <div key={index} className="w-3 h-4 bg-red-500 rounded-sm" />
-          } else if (event.type === "substitution" && event.playerId === playerId) {
+          } else if (event.type === "substitution" && event.player_id === playerId) {
             return <ArrowLeft key={index} className="w-3 h-3 text-green-500 rotate-90" />
-          } else if (event.type === "substitution" && event.assistPlayerId === playerId) {
+          } else if (event.type === "substitution" && event.assist_player_id === playerId) {
             return <ArrowLeft key={index} className="w-3 h-3 text-red-500 -rotate-90" />
           }
           return null
@@ -159,7 +169,7 @@ export default function MatchDetails({ matchId }: { matchId: string }) {
                   width={80}
                   height={80}
                   alt={matchData.homeTeam?.name || "Local"}
-                  className="team-logo"
+                  className="object-contain w-20 h-20"
                 />
                 <h2 className="mt-2 text-xl font-bold">{matchData.homeTeam?.name || "Equipo Local"}</h2>
               </div>
@@ -176,7 +186,7 @@ export default function MatchDetails({ matchId }: { matchId: string }) {
                   width={80}
                   height={80}
                   alt={matchData.awayTeam?.name || "Visitante"}
-                  className="team-logo"
+                  className="object-contain w-20 h-20"
                 />
                 <h2 className="mt-2 text-xl font-bold">{matchData.awayTeam?.name || "Equipo Visitante"}</h2>
               </div>
@@ -208,7 +218,7 @@ export default function MatchDetails({ matchId }: { matchId: string }) {
                         </div>
                         <div className="flex items-center">
                           <div>
-                            <div className="font-medium">{player.name}</div>
+                            <div className="font-medium">{formatFullName(player.firstName, player.lastName)}</div>
                             <div className="text-xs text-muted-foreground">{player.position}</div>
                           </div>
                           {renderPlayerEvents(player.id)}
@@ -228,7 +238,7 @@ export default function MatchDetails({ matchId }: { matchId: string }) {
                         </div>
                         <div className="flex items-center">
                           <div>
-                            <div className="font-medium">{player.name}</div>
+                            <div className="font-medium">{formatFullName(player.firstName, player.lastName)}</div>
                             <div className="text-xs text-muted-foreground">{player.position}</div>
                           </div>
                           {renderPlayerEvents(player.id)}
@@ -253,7 +263,7 @@ export default function MatchDetails({ matchId }: { matchId: string }) {
                         </div>
                         <div className="flex items-center">
                           <div>
-                            <div className="font-medium">{player.name}</div>
+                            <div className="font-medium">{formatFullName(player.firstName, player.lastName)}</div>
                             <div className="text-xs text-muted-foreground">{player.position}</div>
                           </div>
                           {renderPlayerEvents(player.id)}
@@ -273,7 +283,7 @@ export default function MatchDetails({ matchId }: { matchId: string }) {
                         </div>
                         <div className="flex items-center">
                           <div>
-                            <div className="font-medium">{player.name}</div>
+                            <div className="font-medium">{formatFullName(player.firstName, player.lastName)}</div>
                             <div className="text-xs text-muted-foreground">{player.position}</div>
                           </div>
                           {renderPlayerEvents(player.id)}
@@ -291,19 +301,10 @@ export default function MatchDetails({ matchId }: { matchId: string }) {
           <div className="relative pl-8 border-l-2 border-dashed border-muted-foreground/30">
             {matchData.events && matchData.events.length > 0 ? (
               matchData.events.map((event: any) => {
-                const isHomeTeam = event.teamId === matchData.homeTeamId
+                const isHomeTeam = event.team_id === matchData.homeTeamId
                 const team = isHomeTeam ? matchData.homeTeam : matchData.awayTeam
-                const player = [
-                  ...(isHomeTeam ? matchData.homeStartingXI : matchData.awayStartingXI),
-                  ...(isHomeTeam ? matchData.homeSubstitutes : matchData.awaySubstitutes),
-                ].find((p: any) => p.id === event.playerId)
-
-                const assistPlayer = event.assistPlayerId
-                  ? [
-                      ...(isHomeTeam ? matchData.homeStartingXI : matchData.awayStartingXI),
-                      ...(isHomeTeam ? matchData.homeSubstitutes : matchData.awaySubstitutes),
-                    ].find((p: any) => p.id === event.assistPlayerId)
-                  : null
+                const player = event.player
+                const assistPlayer = event.assist_player
 
                 return (
                   <div key={event.id} className="relative mb-8">
@@ -321,17 +322,21 @@ export default function MatchDetails({ matchId }: { matchId: string }) {
                     </div>
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-muted-foreground" />
-                      <span>{player?.name || "Jugador"}</span>
-                      {event.type === "goal" && event.assistPlayerId && (
+                      <span>{player ? formatFullName(player.first_name, player.last_name) : "Jugador"}</span>
+                      {event.type === "goal" && event.assist_player_id && (
                         <>
                           <span className="text-sm text-muted-foreground">Asistencia:</span>
-                          <span>{assistPlayer?.name || "Jugador"}</span>
+                          <span>
+                            {assistPlayer ? formatFullName(assistPlayer.first_name, assistPlayer.last_name) : "Jugador"}
+                          </span>
                         </>
                       )}
-                      {event.type === "substitution" && event.assistPlayerId && (
+                      {event.type === "substitution" && event.assist_player_id && (
                         <>
                           <span className="text-sm text-muted-foreground">Sale:</span>
-                          <span>{assistPlayer?.name || "Jugador"}</span>
+                          <span>
+                            {assistPlayer ? formatFullName(assistPlayer.first_name, assistPlayer.last_name) : "Jugador"}
+                          </span>
                         </>
                       )}
                     </div>
@@ -514,7 +519,7 @@ export default function MatchDetails({ matchId }: { matchId: string }) {
                     src={item.type === "video" ? item.thumbnail : item.url}
                     width={500}
                     height={300}
-                    alt={item.caption}
+                    alt={item.caption || "Media"}
                     className="object-cover w-full aspect-video"
                   />
                   {item.type === "video" && (
@@ -525,7 +530,7 @@ export default function MatchDetails({ matchId }: { matchId: string }) {
                     </div>
                   )}
                   <div className="absolute bottom-0 left-0 right-0 p-2 text-white">
-                    <div className="text-sm font-medium line-clamp-1">{item.caption}</div>
+                    <div className="text-sm font-medium line-clamp-1">{item.caption || "Sin título"}</div>
                   </div>
                 </div>
               ))

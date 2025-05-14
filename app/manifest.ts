@@ -11,17 +11,17 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#000000",
     icons: [
       {
-        src: "/images/parley-icon.png", // Usamos un icono cuadrado optimizado
+        src: "/images/parley-logo.png",
         sizes: "192x192",
         type: "image/png",
       },
       {
-        src: "/images/parley-icon.png", // Usamos un icono cuadrado optimizado
+        src: "/images/parley-logo.png",
         sizes: "512x512",
         type: "image/png",
       },
       {
-        src: "/images/parley-icon.png", // Usamos un icono cuadrado optimizado
+        src: "/images/parley-logo.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",

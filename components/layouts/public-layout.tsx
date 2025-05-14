@@ -4,12 +4,12 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/components/auth/auth-provider"
 import { Home, Calendar, Trophy, Users, ImageIcon, Menu, X, LogIn, LogOut, ClubIcon as Football } from "lucide-react"
+import { Logo } from "@/components/ui/logo"
 
 interface PublicLayoutProps {
   children: React.ReactNode
@@ -48,18 +48,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
       {/* Header */}
       <header className="sticky top-0 z-40 w-full border-b bg-black backdrop-blur supports-[backdrop-filter]:bg-black/80">
         <div className="container flex items-center justify-between h-16 px-4 mx-auto">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 overflow-hidden">
-              <Image
-                src="/images/parley-logo.png"
-                width={40}
-                height={40}
-                alt="PARLEY"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <span className="hidden font-bold text-white sm:inline-block">PARLEY</span>
-          </Link>
+          <Logo size="md" withText={true} />
 
           <div className="flex items-center gap-4">
             <nav className="hidden md:flex items-center gap-6">
@@ -166,16 +155,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
         <div className="container px-4 mx-auto">
           <div className="flex flex-col items-center justify-center">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 overflow-hidden">
-                <Image
-                  src="/images/parley-logo.png"
-                  width={24}
-                  height={24}
-                  alt="PARLEY"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <span className="text-sm font-medium text-white">PARLEY - Torneo de Fútbol 2023</span>
+              <Logo size="sm" withText={true} asLink={false} />
             </div>
           </div>
         </div>

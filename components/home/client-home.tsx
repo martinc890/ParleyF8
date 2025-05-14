@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
 import PublicLayout from "@/components/layouts/public-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,6 +9,8 @@ import { Users, ImageIcon, ClubIcon as Football } from "lucide-react"
 import { EmptyState } from "@/components/ui/empty-state"
 import { getUpcomingMatches, getTeamById } from "@/lib/data-service"
 import SyncGuide from "@/components/home/sync-guide"
+import { Logo } from "@/components/ui/logo"
+import Image from "next/image"
 
 export default function ClientHome() {
   const [upcomingMatches, setUpcomingMatches] = useState<any[]>([])
@@ -43,15 +44,7 @@ export default function ClientHome() {
           <div className="absolute inset-0 z-20 flex flex-col justify-center p-4 sm:p-8">
             <div className="space-y-2 sm:space-y-4 max-w-2xl transition-all duration-700 delay-300">
               <div className="flex items-center gap-3 mb-2 sm:gap-4 sm:mb-4">
-                <div className="w-12 h-12 sm:w-20 sm:h-20 overflow-hidden">
-                  <Image
-                    src="/images/parley-logo.png"
-                    width={80}
-                    height={80}
-                    alt="PARLEY"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
+                <Logo size="lg" withText={false} asLink={false} />
                 <h1 className="text-xl font-bold text-white sm:text-3xl md:text-5xl">PARLEY</h1>
               </div>
               <h2 className="text-lg font-bold text-white sm:text-2xl md:text-3xl">Torneo de Fútbol 2023</h2>
