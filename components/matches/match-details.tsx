@@ -2,546 +2,540 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { BackButton } from "@/components/ui/back-button"
+import { EmptyState } from "@/components/ui/empty-state"
 import {
-  ArrowLeft,
-  Calendar,
+  ClipboardList,
   Clock,
   MapPin,
-  Users,
-  Trophy,
-  User,
+  Calendar,
+  BarChart3,
+  ImageIcon,
   Goal,
   AlertTriangle,
-  Share2,
-  Play,
-  RefreshCw,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  HardDriveIcon as Boot,
 } from "lucide-react"
-import { getEnrichedMatch } from "@/lib/supabase-service"
-import { formatFullName } from "@/lib/utils"
+import { getMatchById } from "@/lib/data-service"
 
 export default function MatchDetails({ matchId }: { matchId: string }) {
-  const [activeTab, setActiveTab] = useState("lineups")
-  const [selectedMedia, setSelectedMedia] = useState<null | any>(null)
-  const [matchData, setMatchData] = useState<any>(null)
+  const [match, setMatch] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState("overview")
 
   useEffect(() => {
-    // Cargar datos del partido desde Supabase
-    const fetchMatchData = async () => {
+    const loadMatch = async () => {
       try {
-        const match = await getEnrichedMatch(matchId)
-        if (match) {
-          setMatchData(match)
-        }
+        const matchData = await getMatchById(matchId)
+        setMatch(matchData)
       } catch (error) {
-        console.error("Error fetching match data:", error)
+        console.error("Error loading match:", error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchMatchData()
+    loadMatch()
   }, [matchId])
 
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     )
   }
 
-  if (!matchData) {
+  if (!match) {
     return (
-      <div className="flex flex-col items-center justify-center p-12">
-        <AlertTriangle className="w-12 h-12 text-destructive mb-4" />
-        <h2 className="text-xl font-bold mb-2">Partido no encontrado</h2>
-        <p className="text-muted-foreground mb-4">No se pudo encontrar información para este partido.</p>
-        <Button asChild>
-          <Link href="/matches">Volver a Partidos</Link>
-        </Button>
+      <div className="space-y-4">
+        <BackButton />
+        <Card>
+          <CardContent className="pt-6">
+            <EmptyState
+              icon={ClipboardList}
+              title="Partido no encontrado"
+              description="No se pudo encontrar el partido solicitado."
+            />
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
-  // Función para renderizar eventos de jugador
-  const renderPlayerEvents = (playerId: string) => {
-    if (!matchData.events || matchData.events.length === 0) return null
-
-    const playerEvents = matchData.events.filter(
-      (event: any) => event.player_id === playerId || event.assist_player_id === playerId,
-    )
-
-    if (playerEvents.length === 0) return null
-
-    return (
-      <div className="flex items-center gap-1 ml-2">
-        {playerEvents.map((event: any, index: number) => {
-          if (event.type === "goal" && event.player_id === playerId) {
-            return <Goal key={index} className="w-3 h-3 text-primary" />
-          } else if (event.type === "goal" && event.assist_player_id === playerId) {
-            return <Goal key={index} className="w-3 h-3 text-gray-400" />
-          } else if (event.type === "yellowCard" && event.player_id === playerId) {
-            return <div key={index} className="w-3 h-4 bg-yellow-400 rounded-sm" />
-          } else if (event.type === "redCard" && event.player_id === playerId) {
-            return <div key={index} className="w-3 h-4 bg-red-500 rounded-sm" />
-          } else if (event.type === "substitution" && event.player_id === playerId) {
-            return <ArrowLeft key={index} className="w-3 h-3 text-green-500 rotate-90" />
-          } else if (event.type === "substitution" && event.assist_player_id === playerId) {
-            return <ArrowLeft key={index} className="w-3 h-3 text-red-500 -rotate-90" />
-          }
-          return null
-        })}
-      </div>
-    )
-  }
+  const isCompleted = match.status === "completed"
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/matches">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-        </Button>
-        <h1 className="text-2xl font-bold">Detalles del Partido</h1>
-      </div>
+    <div className="space-y-4">
+      <BackButton />
 
-      <Card className="overflow-hidden bg-card">
-        <CardContent className="p-0">
-          <div className="p-4 border-b bg-muted/30">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {matchData.date}
-                </Badge>
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {matchData.time}
-                </Badge>
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  {matchData.venue}
-                </Badge>
-                {matchData.group && (
-                  <Badge variant="secondary" className="flex items-center gap-1 bg-black text-white">
-                    <Users className="w-3 h-3" />
-                    Grupo {matchData.group}
-                  </Badge>
-                )}
-                {matchData.phase === "quarterfinal" && (
-                  <Badge variant="secondary" className="flex items-center gap-1 bg-black text-white">
-                    <Trophy className="w-3 h-3" />
-                    Cuartos de Final
-                  </Badge>
-                )}
-                {matchData.phase === "semifinal" && (
-                  <Badge variant="secondary" className="flex items-center gap-1 bg-black text-white">
-                    <Trophy className="w-3 h-3" />
-                    Semifinal
-                  </Badge>
-                )}
-                {matchData.phase === "final" && (
-                  <Badge variant="secondary" className="flex items-center gap-1 bg-black text-white">
-                    <Trophy className="w-3 h-3" />
-                    Final
-                  </Badge>
+      <Card>
+        <CardHeader className="pb-0">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                <Calendar className="w-4 h-4" />
+                <span>{match.date}</span>
+                <span>•</span>
+                <Clock className="w-4 h-4" />
+                <span>{match.time}</span>
+                {match.venue && (
+                  <>
+                    <span>•</span>
+                    <MapPin className="w-4 h-4" />
+                    <span>{match.venue}</span>
+                  </>
                 )}
               </div>
-              <Button variant="ghost" size="sm" className="gap-1">
-                <Share2 className="w-4 h-4" />
-                Compartir
-              </Button>
+              <CardTitle className="text-xl md:text-2xl">
+                {match.homeTeam?.name || "Equipo Local"} vs {match.awayTeam?.name || "Equipo Visitante"}
+              </CardTitle>
+            </div>
+            <Badge variant={isCompleted ? "secondary" : "default"} className="self-start md:self-auto">
+              {isCompleted ? "Completado" : "Próximamente"}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between p-6 bg-muted/30 rounded-lg mb-6">
+            {/* Equipo Local */}
+            <div className="flex flex-col items-center text-center w-[35%]">
+              <div className="relative w-16 h-16 md:w-20 md:h-20">
+                <Image
+                  src={match.homeTeam?.logo || "/placeholder.svg?height=80&width=80"}
+                  fill
+                  alt={match.homeTeam?.name || "Equipo Local"}
+                  className="object-contain"
+                />
+              </div>
+              <h2 className="mt-2 text-base md:text-lg font-bold truncate max-w-full">
+                {match.homeTeam?.name || "Equipo Local"}
+              </h2>
+              {match.homeTeam?.group && (
+                <span className="text-xs text-muted-foreground">Grupo {match.homeTeam.group}</span>
+              )}
+            </div>
+
+            {/* Marcador */}
+            <div className="flex flex-col items-center w-[30%]">
+              {isCompleted ? (
+                <div className="flex items-center gap-4 px-6 py-3 text-3xl md:text-4xl font-bold bg-muted rounded-xl">
+                  <span>{match.homeScore || 0}</span>
+                  <span className="text-muted-foreground">-</span>
+                  <span>{match.awayScore || 0}</span>
+                </div>
+              ) : (
+                <div className="px-4 py-2 text-xl md:text-2xl font-bold">VS</div>
+              )}
+              {match.phase && match.phase !== "group" && (
+                <Badge variant="outline" className="mt-2">
+                  {match.phase === "quarter" && "Cuartos de Final"}
+                  {match.phase === "semi" && "Semifinal"}
+                  {match.phase === "final" && "Final"}
+                  {match.phase === "thirdplace" && "Tercer Puesto"}
+                </Badge>
+              )}
+            </div>
+
+            {/* Equipo Visitante */}
+            <div className="flex flex-col items-center text-center w-[35%]">
+              <div className="relative w-16 h-16 md:w-20 md:h-20">
+                <Image
+                  src={match.awayTeam?.logo || "/placeholder.svg?height=80&width=80"}
+                  fill
+                  alt={match.awayTeam?.name || "Equipo Visitante"}
+                  className="object-contain"
+                />
+              </div>
+              <h2 className="mt-2 text-base md:text-lg font-bold truncate max-w-full">
+                {match.awayTeam?.name || "Equipo Visitante"}
+              </h2>
+              {match.awayTeam?.group && (
+                <span className="text-xs text-muted-foreground">Grupo {match.awayTeam.group}</span>
+              )}
             </div>
           </div>
 
-          <div className="p-6 md:p-8">
-            <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-              <div className="flex flex-col items-center text-center">
-                <Image
-                  src={matchData.homeTeam?.logo || "/images/parley-logo.png"}
-                  width={80}
-                  height={80}
-                  alt={matchData.homeTeam?.name || "Local"}
-                  className="object-contain w-20 h-20"
-                />
-                <h2 className="mt-2 text-xl font-bold">{matchData.homeTeam?.name || "Equipo Local"}</h2>
-              </div>
+          <Tabs defaultValue="overview" onValueChange={setActiveTab}>
+            <TabsList className="grid grid-cols-4 mb-4">
+              <TabsTrigger value="overview">Resumen</TabsTrigger>
+              <TabsTrigger value="lineups">Alineaciones</TabsTrigger>
+              <TabsTrigger value="stats">Estadísticas</TabsTrigger>
+              <TabsTrigger value="media">Media</TabsTrigger>
+            </TabsList>
 
-              <div className="flex items-center gap-4 px-6 py-3 text-4xl font-bold bg-black text-white rounded-xl">
-                <span>{matchData.score?.home || 0}</span>
-                <span className="text-gray-400">-</span>
-                <span>{matchData.score?.away || 0}</span>
-              </div>
+            <TabsContent value="overview" className="space-y-4">
+              {isCompleted ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Eventos del Partido</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {match.events && match.events.length > 0 ? (
+                          <div className="space-y-2">
+                            {match.events.map((event: any, index: number) => (
+                              <div key={index} className="flex items-center gap-2 text-sm">
+                                <Badge variant="outline" className="w-10 text-center">
+                                  {event.minute}'
+                                </Badge>
+                                {event.type === "goal" && <Goal className="w-4 h-4 text-green-500" />}
+                                {event.type === "yellowCard" && (
+                                  <div className="w-3 h-4 bg-yellow-400 rounded-sm"></div>
+                                )}
+                                {event.type === "redCard" && <div className="w-3 h-4 bg-red-500 rounded-sm"></div>}
+                                {event.type === "substitution" && (
+                                  <div className="flex flex-col">
+                                    <ArrowUpFromLine className="w-3 h-3 text-green-500" />
+                                    <ArrowDownToLine className="w-3 h-3 text-red-500" />
+                                  </div>
+                                )}
+                                <span className="font-medium">
+                                  {event.playerName || "Jugador"}
+                                  {event.type === "goal" && event.assistPlayerName && (
+                                    <span className="text-muted-foreground ml-1">
+                                      (Asistencia: <Boot className="w-3 h-3 inline" /> {event.assistPlayerName})
+                                    </span>
+                                  )}
+                                  {event.type === "substitution" && event.assistPlayerName && (
+                                    <span className="text-muted-foreground ml-1">(Sale: {event.assistPlayerName})</span>
+                                  )}
+                                </span>
+                                <Badge variant="secondary" className="ml-auto text-xs px-1.5 py-0 h-5 rounded-sm">
+                                  {event.teamName || (event.isHomeTeam ? match.homeTeam?.name : match.awayTeam?.name)}
+                                </Badge>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-4 text-muted-foreground">
+                            No hay eventos registrados para este partido.
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
 
-              <div className="flex flex-col items-center text-center">
-                <Image
-                  src={matchData.awayTeam?.logo || "/images/parley-logo.png"}
-                  width={80}
-                  height={80}
-                  alt={matchData.awayTeam?.name || "Visitante"}
-                  className="object-contain w-20 h-20"
-                />
-                <h2 className="mt-2 text-xl font-bold">{matchData.awayTeam?.name || "Equipo Visitante"}</h2>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Resumen</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-3 gap-2 text-center">
+                            <div className="bg-muted/30 p-2 rounded-lg">
+                              <div className="text-2xl font-bold">{match.homeStats?.shots || 0}</div>
+                              <div className="text-xs text-muted-foreground">Tiros</div>
+                            </div>
+                            <div className="bg-muted/30 p-2 rounded-lg">
+                              <div className="text-2xl font-bold">{match.homeStats?.corners || 0}</div>
+                              <div className="text-xs text-muted-foreground">Corners</div>
+                            </div>
+                            <div className="bg-muted/30 p-2 rounded-lg">
+                              <div className="text-2xl font-bold">
+                                {(match.homeStats?.yellowCards || 0) + (match.homeStats?.redCards || 0)}
+                              </div>
+                              <div className="text-xs text-muted-foreground">Tarjetas</div>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-center">
+                            <div className="text-xs text-muted-foreground">Equipo Local</div>
+                          </div>
+
+                          <div className="border-t border-b py-4 flex justify-center">
+                            <div className="text-sm">vs</div>
+                          </div>
+
+                          <div className="flex justify-center">
+                            <div className="text-xs text-muted-foreground">Equipo Visitante</div>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-2 text-center">
+                            <div className="bg-muted/30 p-2 rounded-lg">
+                              <div className="text-2xl font-bold">{match.awayStats?.shots || 0}</div>
+                              <div className="text-xs text-muted-foreground">Tiros</div>
+                            </div>
+                            <div className="bg-muted/30 p-2 rounded-lg">
+                              <div className="text-2xl font-bold">{match.awayStats?.corners || 0}</div>
+                              <div className="text-xs text-muted-foreground">Corners</div>
+                            </div>
+                            <div className="bg-muted/30 p-2 rounded-lg">
+                              <div className="text-2xl font-bold">
+                                {(match.awayStats?.yellowCards || 0) + (match.awayStats?.redCards || 0)}
+                              </div>
+                              <div className="text-xs text-muted-foreground">Tarjetas</div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </>
+              ) : (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center space-y-4">
+                      <Clock className="w-12 h-12 mx-auto text-muted-foreground" />
+                      <h3 className="text-xl font-semibold">Partido Próximamente</h3>
+                      <p className="text-muted-foreground">
+                        Este partido aún no se ha jugado. Vuelve más tarde para ver los resultados y estadísticas.
+                      </p>
+                      <div className="flex justify-center gap-4 pt-4">
+                        <Button variant="outline" size="sm">
+                          <Calendar className="w-4 h-4 mr-2" />
+                          Añadir a Calendario
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <AlertTriangle className="w-4 h-4 mr-2" />
+                          Recibir Notificaciones
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="lineups" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Equipo Local */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <div className="w-6 h-6 relative">
+                        <Image
+                          src={match.homeTeam?.logo || "/placeholder.svg?height=24&width=24"}
+                          fill
+                          alt={match.homeTeam?.name || "Equipo Local"}
+                          className="object-contain"
+                        />
+                      </div>
+                      {match.homeTeam?.name || "Equipo Local"}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {match.homeLineup && match.homeLineup.length > 0 ? (
+                      <div className="space-y-2">
+                        {match.homeLineup.map((player: any, index: number) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center text-xs font-medium">
+                                {player.number || "-"}
+                              </div>
+                              <span className="font-medium">{player.name}</span>
+                              <div className="flex items-center gap-1">
+                                {player.goals > 0 &&
+                                  Array.from({ length: player.goals }).map((_, i) => (
+                                    <Goal key={i} className="w-3 h-3 text-green-500" />
+                                  ))}
+                                {player.assists > 0 &&
+                                  Array.from({ length: player.assists }).map((_, i) => (
+                                    <Boot key={i} className="w-3 h-3 text-blue-500" />
+                                  ))}
+                                {player.yellowCards > 0 &&
+                                  Array.from({ length: player.yellowCards }).map((_, i) => (
+                                    <div key={i} className="w-2 h-3 bg-yellow-400 rounded-sm"></div>
+                                  ))}
+                                {player.redCards > 0 &&
+                                  Array.from({ length: player.redCards }).map((_, i) => (
+                                    <div key={i} className="w-2 h-3 bg-red-500 rounded-sm"></div>
+                                  ))}
+                                {player.substitutionOut && <ArrowDownToLine className="w-3 h-3 text-red-500" />}
+                                {player.substitutionIn && <ArrowUpFromLine className="w-3 h-3 text-green-500" />}
+                              </div>
+                            </div>
+                            <div className="text-xs text-muted-foreground">{player.position}</div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-muted-foreground">
+                        No hay información de alineación disponible.
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Equipo Visitante */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <div className="w-6 h-6 relative">
+                        <Image
+                          src={match.awayTeam?.logo || "/placeholder.svg?height=24&width=24"}
+                          fill
+                          alt={match.awayTeam?.name || "Equipo Visitante"}
+                          className="object-contain"
+                        />
+                      </div>
+                      {match.awayTeam?.name || "Equipo Visitante"}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {match.awayLineup && match.awayLineup.length > 0 ? (
+                      <div className="space-y-2">
+                        {match.awayLineup.map((player: any, index: number) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center text-xs font-medium">
+                                {player.number || "-"}
+                              </div>
+                              <span className="font-medium">{player.name}</span>
+                              <div className="flex items-center gap-1">
+                                {player.goals > 0 &&
+                                  Array.from({ length: player.goals }).map((_, i) => (
+                                    <Goal key={i} className="w-3 h-3 text-green-500" />
+                                  ))}
+                                {player.assists > 0 &&
+                                  Array.from({ length: player.assists }).map((_, i) => (
+                                    <Boot key={i} className="w-3 h-3 text-blue-500" />
+                                  ))}
+                                {player.yellowCards > 0 &&
+                                  Array.from({ length: player.yellowCards }).map((_, i) => (
+                                    <div key={i} className="w-2 h-3 bg-yellow-400 rounded-sm"></div>
+                                  ))}
+                                {player.redCards > 0 &&
+                                  Array.from({ length: player.redCards }).map((_, i) => (
+                                    <div key={i} className="w-2 h-3 bg-red-500 rounded-sm"></div>
+                                  ))}
+                                {player.substitutionOut && <ArrowDownToLine className="w-3 h-3 text-red-500" />}
+                                {player.substitutionIn && <ArrowUpFromLine className="w-3 h-3 text-green-500" />}
+                              </div>
+                            </div>
+                            <div className="text-xs text-muted-foreground">{player.position}</div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-muted-foreground">
+                        No hay información de alineación disponible.
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
-            </div>
-          </div>
+            </TabsContent>
+
+            <TabsContent value="stats" className="space-y-4">
+              {isCompleted ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Estadísticas Detalladas</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-3 items-center">
+                        <div className="text-right font-medium">{match.homeStats?.shots || 0}</div>
+                        <div className="text-center text-sm text-muted-foreground">Tiros</div>
+                        <div className="text-left font-medium">{match.awayStats?.shots || 0}</div>
+                      </div>
+                      <div className="grid grid-cols-3 items-center">
+                        <div className="text-right font-medium">{match.homeStats?.shotsOnTarget || 0}</div>
+                        <div className="text-center text-sm text-muted-foreground">Tiros a Puerta</div>
+                        <div className="text-left font-medium">{match.awayStats?.shotsOnTarget || 0}</div>
+                      </div>
+                      <div className="grid grid-cols-3 items-center">
+                        <div className="text-right font-medium">{match.homeStats?.possession || 0}%</div>
+                        <div className="text-center text-sm text-muted-foreground">Posesión</div>
+                        <div className="text-left font-medium">{match.awayStats?.possession || 0}%</div>
+                      </div>
+                      <div className="grid grid-cols-3 items-center">
+                        <div className="text-right font-medium">{match.homeStats?.passes || 0}</div>
+                        <div className="text-center text-sm text-muted-foreground">Pases</div>
+                        <div className="text-left font-medium">{match.awayStats?.passes || 0}</div>
+                      </div>
+                      <div className="grid grid-cols-3 items-center">
+                        <div className="text-right font-medium">{match.homeStats?.passAccuracy || 0}%</div>
+                        <div className="text-center text-sm text-muted-foreground">Precisión de Pases</div>
+                        <div className="text-left font-medium">{match.awayStats?.passAccuracy || 0}%</div>
+                      </div>
+                      <div className="grid grid-cols-3 items-center">
+                        <div className="text-right font-medium">{match.homeStats?.fouls || 0}</div>
+                        <div className="text-center text-sm text-muted-foreground">Faltas</div>
+                        <div className="text-left font-medium">{match.awayStats?.fouls || 0}</div>
+                      </div>
+                      <div className="grid grid-cols-3 items-center">
+                        <div className="text-right font-medium">{match.homeStats?.yellowCards || 0}</div>
+                        <div className="text-center text-sm text-muted-foreground">Tarjetas Amarillas</div>
+                        <div className="text-left font-medium">{match.awayStats?.yellowCards || 0}</div>
+                      </div>
+                      <div className="grid grid-cols-3 items-center">
+                        <div className="text-right font-medium">{match.homeStats?.redCards || 0}</div>
+                        <div className="text-center text-sm text-muted-foreground">Tarjetas Rojas</div>
+                        <div className="text-left font-medium">{match.awayStats?.redCards || 0}</div>
+                      </div>
+                      <div className="grid grid-cols-3 items-center">
+                        <div className="text-right font-medium">{match.homeStats?.corners || 0}</div>
+                        <div className="text-center text-sm text-muted-foreground">Corners</div>
+                        <div className="text-left font-medium">{match.awayStats?.corners || 0}</div>
+                      </div>
+                      <div className="grid grid-cols-3 items-center">
+                        <div className="text-right font-medium">{match.homeStats?.offsides || 0}</div>
+                        <div className="text-center text-sm text-muted-foreground">Fuera de Juego</div>
+                        <div className="text-left font-medium">{match.awayStats?.offsides || 0}</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="pt-6">
+                    <EmptyState
+                      icon={BarChart3}
+                      title="Estadísticas no disponibles"
+                      description="Las estadísticas estarán disponibles una vez que el partido haya finalizado."
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="media" className="space-y-4">
+              {match.media && match.media.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {match.media.map((item: any, index: number) => (
+                    <div key={index} className="aspect-video relative rounded-lg overflow-hidden group">
+                      <Image
+                        src={item.thumbnail || item.url || "/placeholder.svg?height=180&width=320"}
+                        alt={item.caption || `Media ${index + 1}`}
+                        fill
+                        className="object-cover transition-transform group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Button variant="secondary" size="sm">
+                          {item.type === "video" ? "Ver Video" : "Ver Imagen"}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="pt-6">
+                    <EmptyState
+                      icon={ImageIcon}
+                      title="No hay contenido multimedia"
+                      description="No hay fotos o videos disponibles para este partido."
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
-
-      <Tabs defaultValue="lineups" onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="lineups">Alineaciones</TabsTrigger>
-          <TabsTrigger value="events">Eventos</TabsTrigger>
-          <TabsTrigger value="stats">Estadísticas</TabsTrigger>
-          <TabsTrigger value="media">Media</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="lineups" className="mt-6">
-          <div className="grid gap-8 md:grid-cols-2">
-            <div>
-              <h3 className="mb-4 text-xl font-semibold">{matchData.homeTeam?.name || "Equipo Local"}</h3>
-              <div className="space-y-6">
-                <div>
-                  <h4 className="mb-2 text-sm font-medium text-muted-foreground">Titulares</h4>
-                  <div className="space-y-2">
-                    {matchData.homeStartingXI?.map((player: any) => (
-                      <div key={player.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted">
-                        <div className="flex items-center justify-center w-8 h-8 text-xs font-medium bg-black text-white rounded-full">
-                          {player.number}
-                        </div>
-                        <div className="flex items-center">
-                          <div>
-                            <div className="font-medium">{formatFullName(player.firstName, player.lastName)}</div>
-                            <div className="text-xs text-muted-foreground">{player.position}</div>
-                          </div>
-                          {renderPlayerEvents(player.id)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="mb-2 text-sm font-medium text-muted-foreground">Suplentes</h4>
-                  <div className="space-y-2">
-                    {matchData.homeSubstitutes?.map((player: any) => (
-                      <div key={player.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted">
-                        <div className="flex items-center justify-center w-8 h-8 text-xs font-medium bg-gray-200 text-gray-700 rounded-full">
-                          {player.number}
-                        </div>
-                        <div className="flex items-center">
-                          <div>
-                            <div className="font-medium">{formatFullName(player.firstName, player.lastName)}</div>
-                            <div className="text-xs text-muted-foreground">{player.position}</div>
-                          </div>
-                          {renderPlayerEvents(player.id)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="mb-4 text-xl font-semibold">{matchData.awayTeam?.name || "Equipo Visitante"}</h3>
-              <div className="space-y-6">
-                <div>
-                  <h4 className="mb-2 text-sm font-medium text-muted-foreground">Titulares</h4>
-                  <div className="space-y-2">
-                    {matchData.awayStartingXI?.map((player: any) => (
-                      <div key={player.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted">
-                        <div className="flex items-center justify-center w-8 h-8 text-xs font-medium bg-black text-white rounded-full">
-                          {player.number}
-                        </div>
-                        <div className="flex items-center">
-                          <div>
-                            <div className="font-medium">{formatFullName(player.firstName, player.lastName)}</div>
-                            <div className="text-xs text-muted-foreground">{player.position}</div>
-                          </div>
-                          {renderPlayerEvents(player.id)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="mb-2 text-sm font-medium text-muted-foreground">Suplentes</h4>
-                  <div className="space-y-2">
-                    {matchData.awaySubstitutes?.map((player: any) => (
-                      <div key={player.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted">
-                        <div className="flex items-center justify-center w-8 h-8 text-xs font-medium bg-gray-200 text-gray-700 rounded-full">
-                          {player.number}
-                        </div>
-                        <div className="flex items-center">
-                          <div>
-                            <div className="font-medium">{formatFullName(player.firstName, player.lastName)}</div>
-                            <div className="text-xs text-muted-foreground">{player.position}</div>
-                          </div>
-                          {renderPlayerEvents(player.id)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="events" className="mt-6">
-          <div className="relative pl-8 border-l-2 border-dashed border-muted-foreground/30">
-            {matchData.events && matchData.events.length > 0 ? (
-              matchData.events.map((event: any) => {
-                const isHomeTeam = event.team_id === matchData.homeTeamId
-                const team = isHomeTeam ? matchData.homeTeam : matchData.awayTeam
-                const player = event.player
-                const assistPlayer = event.assist_player
-
-                return (
-                  <div key={event.id} className="relative mb-8">
-                    <div className="absolute -left-[41px] flex items-center justify-center w-10 h-10 rounded-full bg-background border-2 border-muted">
-                      {event.type === "goal" && <Goal className="w-5 h-5 text-primary" />}
-                      {event.type === "yellowCard" && <div className="w-5 h-7 bg-yellow-400 rounded-sm" />}
-                      {event.type === "redCard" && <div className="w-5 h-7 bg-red-500 rounded-sm" />}
-                      {event.type === "substitution" && <RefreshCw className="w-5 h-5 text-green-500" />}
-                    </div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="outline">{event.minute}'</Badge>
-                      <span className="font-medium">
-                        {team?.name || (isHomeTeam ? "Equipo Local" : "Equipo Visitante")}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      <span>{player ? formatFullName(player.first_name, player.last_name) : "Jugador"}</span>
-                      {event.type === "goal" && event.assist_player_id && (
-                        <>
-                          <span className="text-sm text-muted-foreground">Asistencia:</span>
-                          <span>
-                            {assistPlayer ? formatFullName(assistPlayer.first_name, assistPlayer.last_name) : "Jugador"}
-                          </span>
-                        </>
-                      )}
-                      {event.type === "substitution" && event.assist_player_id && (
-                        <>
-                          <span className="text-sm text-muted-foreground">Sale:</span>
-                          <span>
-                            {assistPlayer ? formatFullName(assistPlayer.first_name, assistPlayer.last_name) : "Jugador"}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )
-              })
-            ) : (
-              <div className="py-8 text-center text-muted-foreground">
-                {matchData.status === "upcoming"
-                  ? "El partido aún no ha comenzado."
-                  : "No hay eventos registrados para este partido."}
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="stats" className="mt-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>{matchData.stats?.possession?.home || 50}%</span>
-                    <span className="font-medium">Posesión</span>
-                    <span>{matchData.stats?.possession?.away || 50}%</span>
-                  </div>
-                  <div className="flex h-2 overflow-hidden rounded-full bg-muted">
-                    <div className="bg-black" style={{ width: `${matchData.stats?.possession?.home || 50}%` }} />
-                    <div className="bg-gray-500" style={{ width: `${matchData.stats?.possession?.away || 50}%` }} />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>{matchData.stats?.shots?.home || 0}</span>
-                    <span className="font-medium">Tiros</span>
-                    <span>{matchData.stats?.shots?.away || 0}</span>
-                  </div>
-                  <div className="flex h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="bg-black"
-                      style={{
-                        width: `${((matchData.stats?.shots?.home || 0) / ((matchData.stats?.shots?.home || 0) + (matchData.stats?.shots?.away || 0) || 1)) * 100}%`,
-                      }}
-                    />
-                    <div
-                      className="bg-gray-500"
-                      style={{
-                        width: `${((matchData.stats?.shots?.away || 0) / ((matchData.stats?.shots?.home || 0) + (matchData.stats?.shots?.away || 0) || 1)) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>{matchData.stats?.shotsOnTarget?.home || 0}</span>
-                    <span className="font-medium">Tiros a Puerta</span>
-                    <span>{matchData.stats?.shotsOnTarget?.away || 0}</span>
-                  </div>
-                  <div className="flex h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="bg-black"
-                      style={{
-                        width: `${((matchData.stats?.shotsOnTarget?.home || 0) / ((matchData.stats?.shotsOnTarget?.home || 0) + (matchData.stats?.shotsOnTarget?.away || 0) || 1)) * 100}%`,
-                      }}
-                    />
-                    <div
-                      className="bg-gray-500"
-                      style={{
-                        width: `${((matchData.stats?.shotsOnTarget?.away || 0) / ((matchData.stats?.shotsOnTarget?.home || 0) + (matchData.stats?.shotsOnTarget?.away || 0) || 1)) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>{matchData.stats?.corners?.home || 0}</span>
-                    <span className="font-medium">Córners</span>
-                    <span>{matchData.stats?.corners?.away || 0}</span>
-                  </div>
-                  <div className="flex h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="bg-black"
-                      style={{
-                        width: `${((matchData.stats?.corners?.home || 0) / ((matchData.stats?.corners?.home || 0) + (matchData.stats?.corners?.away || 0) || 1)) * 100}%`,
-                      }}
-                    />
-                    <div
-                      className="bg-gray-500"
-                      style={{
-                        width: `${((matchData.stats?.corners?.away || 0) / ((matchData.stats?.corners?.home || 0) + (matchData.stats?.corners?.away || 0) || 1)) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>{matchData.stats?.fouls?.home || 0}</span>
-                    <span className="font-medium">Faltas</span>
-                    <span>{matchData.stats?.fouls?.away || 0}</span>
-                  </div>
-                  <div className="flex h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="bg-black"
-                      style={{
-                        width: `${((matchData.stats?.fouls?.home || 0) / ((matchData.stats?.fouls?.home || 0) + (matchData.stats?.fouls?.away || 0) || 1)) * 100}%`,
-                      }}
-                    />
-                    <div
-                      className="bg-gray-500"
-                      style={{
-                        width: `${((matchData.stats?.fouls?.away || 0) / ((matchData.stats?.fouls?.home || 0) + (matchData.stats?.fouls?.away || 0) || 1)) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>{matchData.stats?.yellowCards?.home || 0}</span>
-                    <span className="font-medium">Tarjetas Amarillas</span>
-                    <span>{matchData.stats?.yellowCards?.away || 0}</span>
-                  </div>
-                  <div className="flex h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="bg-yellow-400"
-                      style={{
-                        width: `${((matchData.stats?.yellowCards?.home || 0) / ((matchData.stats?.yellowCards?.home || 0) + (matchData.stats?.yellowCards?.away || 0) || 1)) * 100}%`,
-                      }}
-                    />
-                    <div
-                      className="bg-yellow-400/50"
-                      style={{
-                        width: `${((matchData.stats?.yellowCards?.away || 0) / ((matchData.stats?.yellowCards?.home || 0) + (matchData.stats?.yellowCards?.away || 0) || 1)) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>{matchData.stats?.redCards?.home || 0}</span>
-                    <span className="font-medium">Tarjetas Rojas</span>
-                    <span>{matchData.stats?.redCards?.away || 0}</span>
-                  </div>
-                  <div className="flex h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="bg-red-500"
-                      style={{
-                        width: `${((matchData.stats?.redCards?.home || 0) / ((matchData.stats?.redCards?.home || 0) + (matchData.stats?.redCards?.away || 0) || 1)) * 100}%`,
-                      }}
-                    />
-                    <div
-                      className="bg-red-500/50"
-                      style={{
-                        width: `${((matchData.stats?.redCards?.away || 0) / ((matchData.stats?.redCards?.home || 0) + (matchData.stats?.redCards?.away || 0) || 1)) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="media" className="mt-6">
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {matchData.media && matchData.media.length > 0 ? (
-              matchData.media.map((item: any) => (
-                <div
-                  key={item.id}
-                  className="relative overflow-hidden rounded-lg cursor-pointer group"
-                  onClick={() => setSelectedMedia(item)}
-                >
-                  <div className="absolute inset-0 transition-opacity bg-black/30 group-hover:bg-black/50" />
-                  <Image
-                    src={item.type === "video" ? item.thumbnail : item.url}
-                    width={500}
-                    height={300}
-                    alt={item.caption || "Media"}
-                    className="object-cover w-full aspect-video"
-                  />
-                  {item.type === "video" && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="flex items-center justify-center w-10 h-10 bg-white rounded-full">
-                        <Play className="w-5 h-5 text-black fill-black" />
-                      </div>
-                    </div>
-                  )}
-                  <div className="absolute bottom-0 left-0 right-0 p-2 text-white">
-                    <div className="text-sm font-medium line-clamp-1">{item.caption || "Sin título"}</div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="col-span-full py-8 text-center text-muted-foreground">
-                No hay contenido multimedia disponible para este partido.
-              </div>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
     </div>
   )
 }

@@ -2,38 +2,32 @@ import Image from "next/image"
 import Link from "next/link"
 
 interface LogoProps {
+  className?: string
   size?: "sm" | "md" | "lg"
-  withText?: boolean
-  asLink?: boolean
-  linkHref?: string
 }
 
-export function Logo({ size = "md", withText = true, asLink = true, linkHref = "/" }: LogoProps) {
+export function Logo({ className = "", size = "md" }: LogoProps) {
   const sizes = {
-    sm: { container: "w-6 h-6", text: "text-sm" },
-    md: { container: "w-10 h-10", text: "text-base" },
-    lg: { container: "w-16 h-16", text: "text-xl" },
+    sm: { width: 32, height: 32 },
+    md: { width: 40, height: 40 },
+    lg: { width: 48, height: 48 },
   }
 
-  const logoElement = (
-    <div className="flex items-center gap-2">
-      <div className={`${sizes[size].container} relative`}>
+  const { width, height } = sizes[size]
+
+  return (
+    <Link href="/" className={`flex items-center gap-2 ${className}`}>
+      <div className="relative">
         <Image
-          src="/images/logo-p.png"
-          alt="PARLEY"
-          width={size === "lg" ? 64 : size === "md" ? 40 : 24}
-          height={size === "lg" ? 64 : size === "md" ? 40 : 24}
-          className="w-full h-full object-contain"
+          src="/images/parley-logo.png"
+          width={width}
+          height={height}
+          alt="Parley Logo"
+          className="object-contain"
           priority
         />
       </div>
-      {withText && <span className={`font-bold text-white ${sizes[size].text}`}>PARLEY</span>}
-    </div>
+      <span className="font-bold text-lg">Parley</span>
+    </Link>
   )
-
-  if (asLink) {
-    return <Link href={linkHref}>{logoElement}</Link>
-  }
-
-  return logoElement
 }

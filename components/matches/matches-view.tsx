@@ -160,6 +160,7 @@ export default function MatchesView() {
                               {match.phase === "quarter" && "Cuartos de Final"}
                               {match.phase === "semi" && "Semifinal"}
                               {match.phase === "final" && "Final"}
+                              {match.phase === "thirdplace" && "Tercer Puesto"}
                             </span>
                             <span>•</span>
                           </>
@@ -167,8 +168,9 @@ export default function MatchesView() {
                         <span>{match.stadium}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        {/* Equipo Local */}
+                        <div className="flex items-center gap-2 sm:gap-3 w-[35%]">
+                          <div className="min-w-8 h-8 sm:min-w-10 sm:h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
                             {match.homeTeam?.logo ? (
                               <Image
                                 src={match.homeTeam.logo || "/placeholder.svg?height=40&width=40"}
@@ -181,24 +183,30 @@ export default function MatchesView() {
                               <span className="text-xs font-bold">{match.homeTeam?.name?.substring(0, 2) || "L"}</span>
                             )}
                           </div>
-                          <span className="text-sm font-medium sm:text-base truncate max-w-[80px] sm:max-w-[120px] md:max-w-none">
+                          <span className="text-sm font-medium sm:text-base truncate">
                             {match.homeTeam?.name || "Equipo Local"}
                           </span>
                         </div>
-                        {match.status === "completed" ? (
-                          <div className="flex items-center gap-2 px-2 py-1 sm:px-3 text-base sm:text-lg font-bold bg-muted rounded-md">
-                            <span>{match.homeScore || 0}</span>
-                            <span>-</span>
-                            <span>{match.awayScore || 0}</span>
-                          </div>
-                        ) : (
-                          <div className="text-sm font-bold">VS</div>
-                        )}
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <span className="text-sm font-medium sm:text-base truncate max-w-[80px] sm:max-w-[120px] md:max-w-none">
+
+                        {/* Marcador */}
+                        <div className="flex-shrink-0 w-[20%] flex justify-center">
+                          {match.status === "completed" ? (
+                            <div className="flex items-center gap-2 px-2 py-1 sm:px-3 text-base sm:text-lg font-bold bg-muted rounded-md">
+                              <span>{match.homeScore || 0}</span>
+                              <span>-</span>
+                              <span>{match.awayScore || 0}</span>
+                            </div>
+                          ) : (
+                            <div className="text-sm font-bold">VS</div>
+                          )}
+                        </div>
+
+                        {/* Equipo Visitante */}
+                        <div className="flex items-center gap-2 sm:gap-3 w-[35%] justify-end">
+                          <span className="text-sm font-medium sm:text-base truncate text-right">
                             {match.awayTeam?.name || "Equipo Visitante"}
                           </span>
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                          <div className="min-w-8 h-8 sm:min-w-10 sm:h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
                             {match.awayTeam?.logo ? (
                               <Image
                                 src={match.awayTeam.logo || "/placeholder.svg?height=40&width=40"}

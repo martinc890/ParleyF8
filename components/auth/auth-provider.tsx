@@ -1,101 +1,211 @@
 "use client"
 
 import type React from "react"
+
 import { createContext, useContext, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import type { User, UserRole } from "@/lib/auth-types"
+import { supabase } from "@/lib/supabase-client"
+import type { User } from "@/lib/types"
+import { useToast } from "@/components/ui/use-toast"
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string, role: UserRole) => Promise<boolean>
+  login: (email: string, password: string) => Promise<boolean>
   logout: () => void
   isAdmin: () => boolean
   isCaptain: () => boolean
   isPlayer: () => boolean
+  loading: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const { toast } = useToast()
 
-  // Check if user is already logged in
+  // Verificar sesión al cargar
   useEffect(() => {
-    const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null
-    if (storedUser) {
+    const checkSession = async () => {
       try {
-        setUser(JSON.parse(storedUser))
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+
+        if (session) {
+          // Obtener datos del usuario desde la tabla de perfiles
+          const { data: profileData, error: profileError } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", session.user.id)
+            .single()
+
+          if (profileError) {
+            console.error("Error fetching user profile:", profileError)
+            await supabase.auth.signOut()
+            setLoading(false)
+            return
+          }
+
+          setUser({
+            id: session.user.id,
+            email: session.user.email || "",
+            name: `${profileData.first_name || ""} ${profileData.last_name || ""}`.trim(),
+            role: profileData.role,
+            teamId: profileData.team_id,
+          })
+        }
       } catch (error) {
-        console.error("Error parsing stored user:", error)
-        localStorage.removeItem("user")
+        console.error("Error checking session:", error)
+      } finally {
+        setLoading(false)
       }
     }
-  }, [])
 
-  const login = async (email: string, password: string, role: UserRole): Promise<boolean> => {
-    // In a real app, this would be an API call
-    // For demo purposes, we'll just simulate a successful login
+    checkSession()
+
+    // Suscribirse a cambios de autenticación
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        // Obtener datos del usuario desde la tabla de perfiles
+        const { data: profileData, error: profileError } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", session.user.id)
+          .single()
+
+        if (profileError) {
+          console.error("Error fetching user profile:", profileError)
+          await supabase.auth.signOut()
+          return
+        }
+
+        const userData: User = {
+          id: session.user.id,
+          email: session.user.email || "",
+          name: `${profileData.first_name || ""} ${profileData.last_name || ""}`.trim(),
+          role: profileData.role,
+          teamId: profileData.team_id,
+        }
+
+        setUser(userData)
+
+        // Redirigir según el rol
+        if (userData.role === "admin") {
+          router.push("/admin/dashboard")
+        } else if (userData.role === "captain") {
+          router.push("/captain/dashboard")
+        } else {
+          router.push("/player/dashboard")
+        }
+      } else if (event === "SIGNED_OUT") {
+        setUser(null)
+        router.push("/")
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [router])
+
+  const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      setLoading(true)
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-      let mockUser: User
-
-      if (role === "admin") {
-        mockUser = {
-          id: "admin-123",
-          name: "Admin User",
-          email,
-          role: "admin",
-        }
-      } else if (role === "captain") {
-        mockUser = {
-          id: "captain-123",
-          name: "Captain User",
-          email,
-          role: "captain",
-          teamId: "team-1", // Asignamos el equipo 1 al capitán
-        }
-      } else {
-        mockUser = {
-          id: "player-123",
-          name: "Player User",
-          email,
-          role: "player",
-          teamId: "team-2", // Asignamos el equipo 2 al jugador
-        }
+      if (error) {
+        toast({
+          title: "Error de inicio de sesión",
+          description: error.message,
+          variant: "destructive",
+        })
+        return false
       }
 
-      setUser(mockUser)
+      if (data.user) {
+        // Obtener datos del usuario desde la tabla de perfiles
+        const { data: profileData, error: profileError } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", data.user.id)
+          .single()
 
-      // Store user in localStorage
-      if (typeof window !== "undefined") {
-        localStorage.setItem("user", JSON.stringify(mockUser))
+        if (profileError) {
+          toast({
+            title: "Error",
+            description: "No se pudo obtener el perfil del usuario",
+            variant: "destructive",
+          })
+          await supabase.auth.signOut()
+          return false
+        }
+
+        const userData: User = {
+          id: data.user.id,
+          email: data.user.email || "",
+          name: `${profileData.first_name || ""} ${profileData.last_name || ""}`.trim(),
+          role: profileData.role,
+          teamId: profileData.team_id,
+        }
+
+        setUser(userData)
+
+        toast({
+          title: "Inicio de sesión exitoso",
+          description: `Bienvenido, ${userData.name}`,
+        })
+
+        // Redirigir según el rol
+        if (userData.role === "admin") {
+          router.push("/admin/dashboard")
+        } else if (userData.role === "captain") {
+          router.push("/captain/dashboard")
+        } else {
+          router.push("/player/dashboard")
+        }
+
+        return true
       }
 
-      // Redirect based on role
-      if (role === "admin") {
-        router.push("/admin/dashboard")
-      } else if (role === "captain") {
-        router.push("/captain/dashboard")
-      } else {
-        router.push("/player/dashboard")
-      }
-
-      return true
-    } catch (error) {
-      console.error("Login error:", error)
       return false
+    } catch (error: any) {
+      console.error("Login error:", error)
+      toast({
+        title: "Error",
+        description: error.message || "Ocurrió un error durante el inicio de sesión",
+        variant: "destructive",
+      })
+      return false
+    } finally {
+      setLoading(false)
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("user")
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut()
+      setUser(null)
+      router.push("/")
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión correctamente",
+      })
+    } catch (error: any) {
+      console.error("Logout error:", error)
+      toast({
+        title: "Error",
+        description: error.message || "Ocurrió un error al cerrar sesión",
+        variant: "destructive",
+      })
     }
-    router.push("/")
   }
 
   const isAdmin = () => {
@@ -111,7 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAdmin, isCaptain, isPlayer }}>
+    <AuthContext.Provider value={{ user, login, logout, isAdmin, isCaptain, isPlayer, loading }}>
       {children}
     </AuthContext.Provider>
   )

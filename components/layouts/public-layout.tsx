@@ -5,179 +5,145 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
-import { useAuth } from "@/components/auth/auth-provider"
-import { Home, Calendar, Trophy, Users, ImageIcon, Menu, X, LogIn, LogOut, ClubIcon as Football } from "lucide-react"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { ModeToggle } from "@/components/mode-toggle"
 import { Logo } from "@/components/ui/logo"
+import { Menu, Home, Users, Trophy } from "lucide-react"
+import { useAuth } from "@/components/auth/auth-provider"
 
-interface PublicLayoutProps {
-  children: React.ReactNode
-}
-
-export default function PublicLayout({ children }: PublicLayoutProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { user, logout, isAdmin } = useAuth()
+  const [isOpen, setIsOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+  const { user, logout } = useAuth()
 
-  // Close mobile menu when path changes
   useEffect(() => {
-    setIsMenuOpen(false)
-  }, [pathname])
+    setIsMounted(true)
+  }, [])
 
-  const navItems = [
+  const closeSheet = () => {
+    setIsOpen(false)
+  }
+
+  const navigation = [
     { name: "Inicio", href: "/", icon: Home },
-    { name: "Partidos", href: "/matches", icon: Football },
+    { name: "Partidos", href: "/matches", icon: Trophy },
     { name: "Grupos", href: "/groups", icon: Users },
     { name: "Playoffs", href: "/playoffs", icon: Trophy },
-    { name: "Galería", href: "/media", icon: ImageIcon },
-    { name: "Calendario", href: "/calendar", icon: Calendar },
   ]
 
-  // Reordenar los elementos para el menú móvil (poner Inicio en el medio)
-  const mobileNavItems = [
-    navItems[1], // Partidos
-    navItems[2], // Grupos
-    navItems[0], // Inicio (ahora en el medio)
-    navItems[3], // Playoffs
-    navItems[4], // Galería
-  ]
+  if (!isMounted) {
+    return null
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
-      <header className="sticky top-0 z-40 w-full border-b bg-black backdrop-blur supports-[backdrop-filter]:bg-black/80">
-        <div className="container flex items-center justify-between h-16 px-4 mx-auto">
-          <Logo size="md" withText={true} />
-
-          <div className="flex items-center gap-4">
-            <nav className="hidden md:flex items-center gap-6">
-              {navItems.map((item) => (
-                <Link
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center">
+          <div className="mr-4 flex">
+            <Logo />
+          </div>
+          <div className="hidden md:flex items-center space-x-1 flex-1">
+            {navigation.map((item) => {
+              const isActive = pathname === item.href
+              return (
+                <Button
                   key={item.name}
-                  href={item.href}
-                  className={`text-sm font-medium transition-colors hover:text-white ${
-                    pathname === item.href ? "text-white" : "text-gray-400"
-                  }`}
+                  variant={isActive ? "secondary" : "ghost"}
+                  size="sm"
+                  className="text-sm font-medium"
+                  asChild
                 >
-                  {item.name}
-                </Link>
-              ))}
-            </nav>
-
-            <div className="flex items-center gap-2">
-              <ModeToggle />
-              {user ? (
-                <>
-                  {isAdmin() ? (
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href="/admin/dashboard">Admin</Link>
-                    </Button>
-                  ) : (
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={user.role === "captain" ? "/captain/dashboard" : "/player/dashboard"}>Dashboard</Link>
-                    </Button>
-                  )}
-                  <Button variant="outline" size="sm" onClick={logout}>
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Salir
-                  </Button>
-                </>
-              ) : (
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/login">
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Login
+                  <Link href={item.href}>
+                    <item.icon className="h-4 w-4 mr-2" />
+                    {item.name}
                   </Link>
                 </Button>
+              )
+            })}
+          </div>
+          <div className="flex flex-1 items-center justify-end space-x-2">
+            <nav className="flex items-center space-x-1">
+              <ModeToggle />
+              {user ? (
+                <Button variant="outline" size="sm" onClick={logout}>
+                  Cerrar Sesión
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/login">Iniciar Sesión</Link>
+                </Button>
               )}
-              <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </Button>
-            </div>
+              <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon" className="md:hidden">
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Toggle Menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left">
+                  <div className="px-2 py-6">
+                    <Logo className="mb-8" />
+                    <div className="flex flex-col space-y-3">
+                      {navigation.map((item) => {
+                        const isActive = pathname === item.href
+                        return (
+                          <Button
+                            key={item.name}
+                            variant={isActive ? "secondary" : "ghost"}
+                            className="justify-start"
+                            onClick={closeSheet}
+                            asChild
+                          >
+                            <Link href={item.href}>
+                              <item.icon className="h-5 w-5 mr-2" />
+                              {item.name}
+                            </Link>
+                          </Button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </nav>
           </div>
         </div>
       </header>
-
-      {/* Mobile menu */}
-      {isMenuOpen && (
-        <div className="fixed inset-0 z-30 bg-black md:hidden pt-16 fade-in">
-          <nav className="container flex flex-col gap-4 p-4">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-md transition-colors ${
-                  pathname === item.href ? "bg-gray-800 text-white" : "hover:bg-gray-800 text-gray-300"
-                }`}
-              >
-                <item.icon className="w-5 h-5" />
-                {item.name}
-              </Link>
-            ))}
-            <div className="mt-4 pt-4 border-t border-gray-800">
-              {user ? (
-                <>
-                  {isAdmin() ? (
-                    <Button className="w-full mb-2 bg-white text-black hover:bg-gray-200" asChild>
-                      <Link href="/admin/dashboard">Panel de Administración</Link>
-                    </Button>
-                  ) : (
-                    <Button className="w-full mb-2 bg-white text-black hover:bg-gray-200" asChild>
-                      <Link href={user.role === "captain" ? "/captain/dashboard" : "/player/dashboard"}>
-                        Mi Dashboard
-                      </Link>
-                    </Button>
-                  )}
-                  <Button variant="outline" className="w-full" onClick={logout}>
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Cerrar Sesión
+      <main className="flex-1 container py-6">{children}</main>
+      <footer className="border-t py-6 md:py-0">
+        <div className="container flex flex-col md:flex-row items-center justify-between gap-4 md:h-14">
+          <p className="text-sm text-muted-foreground">
+            &copy; {new Date().getFullYear()} Parley. Todos los derechos reservados.
+          </p>
+          <div className="flex items-center gap-4">
+            {user ? (
+              <>
+                {user.role === "admin" && (
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/admin/dashboard">Panel Admin</Link>
                   </Button>
-                </>
-              ) : (
-                <Button className="w-full bg-white text-black hover:bg-gray-200" asChild>
-                  <Link href="/login">
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Iniciar Sesión
-                  </Link>
-                </Button>
-              )}
-            </div>
-          </nav>
-        </div>
-      )}
-
-      {/* Main content */}
-      <main className="flex-1">{children}</main>
-
-      {/* Footer */}
-      <footer className="py-6 border-t bg-black">
-        <div className="container px-4 mx-auto">
-          <div className="flex flex-col items-center justify-center">
-            <div className="flex items-center gap-2">
-              <Logo size="sm" withText={true} asLink={false} />
-            </div>
+                )}
+                {user.role === "captain" && (
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/captain/dashboard">Panel Capitán</Link>
+                  </Button>
+                )}
+                {user.role === "player" && (
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/player/dashboard">Mi Perfil</Link>
+                  </Button>
+                )}
+              </>
+            ) : (
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/login">Iniciar Sesión</Link>
+              </Button>
+            )}
           </div>
         </div>
       </footer>
-
-      {/* Bottom navigation for mobile - Adjusted for iOS slider */}
-      <div className="sticky bottom-0 z-40 md:hidden border-t bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/60 pb-safe">
-        <div className="grid grid-cols-5 h-14">
-          {mobileNavItems.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`flex flex-col items-center justify-center gap-1 text-xs font-medium ${
-                pathname === item.href ? "text-white" : "text-gray-400"
-              }`}
-            >
-              <item.icon className="w-5 h-5" />
-              <span>{item.name}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }

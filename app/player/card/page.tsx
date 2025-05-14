@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { useAuth } from "@/components/auth/auth-provider"
-import { QrCode, User, Calendar, MapPin, Mail, Phone, Info, RotateCw } from "lucide-react"
+import { QrCode, User, Calendar, Mail, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import DashboardLayout from "@/app/dashboard-layout"
-import { getPlayerById, getTeamById } from "@/lib/data-service"
+import { getPlayerById, getTeamById } from "@/lib/supabase-service"
 import type { Player, Team } from "@/lib/types"
 import { BackButton } from "@/components/ui/back-button"
 import { Logo } from "@/components/ui/logo"
@@ -17,52 +17,50 @@ export default function PlayerCardPage() {
   const [isFlipped, setIsFlipped] = useState(false)
   const [player, setPlayer] = useState<Player | null>(null)
   const [team, setTeam] = useState<Team | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Generar un valor único para el QR que incluya el ID del usuario y una marca de tiempo
-    if (user) {
-      setQrValue(`PARLEY-${user.id}-${Date.now()}`)
+    const loadPlayerData = async () => {
+      if (!user) return
 
-      // Obtener datos del jugador
-      const playerData = getPlayerById(user.id)
-      if (playerData) {
-        setPlayer(playerData)
-      } else {
-        // Si no existe, creamos un jugador simulado
-        setPlayer({
-          id: user.id,
-          name: user.name,
-          number: 10,
-          position: "Delantero",
-          teamId: user.teamId || "",
-          stats: {
-            goals: 5,
-            assists: 3,
-            yellowCards: 1,
-            redCards: 0,
-          },
-        })
-      }
+      try {
+        // Generar un valor único para el QR
+        setQrValue(`PARLEY-${user.id}-${Date.now()}`)
 
-      // Obtener datos del equipo
-      if (user.teamId) {
-        const teamData = getTeamById(user.teamId)
-        if (teamData) {
-          setTeam(teamData)
+        // Obtener datos del jugador
+        const playerData = await getPlayerById(user.id)
+        if (playerData) {
+          setPlayer(playerData)
+
+          // Obtener datos del equipo
+          if (playerData.teamId) {
+            const teamData = await getTeamById(playerData.teamId)
+            if (teamData) {
+              setTeam(teamData)
+            }
+          }
         }
+      } catch (error) {
+        console.error("Error loading player data:", error)
+      } finally {
+        setLoading(false)
       }
     }
+
+    loadPlayerData()
   }, [user])
 
   const handleFlip = () => {
     setIsFlipped(!isFlipped)
   }
 
-  if (!user) {
+  if (!user || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Cargando...</p>
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </DashboardLayout>
     )
   }
 
@@ -75,7 +73,6 @@ export default function PlayerCardPage() {
             <h1 className="text-2xl font-bold tracking-tight">Mi Carnet Digital</h1>
           </div>
           <Button onClick={handleFlip} size="sm">
-            <RotateCw className="mr-2 h-4 w-4" />
             {isFlipped ? "Ver Frente" : "Ver Dorso"}
           </Button>
         </div>
@@ -104,10 +101,10 @@ export default function PlayerCardPage() {
 
                   <div className="flex flex-col items-center flex-grow">
                     <div className="w-24 h-24 bg-gray-700 rounded-full mb-3 flex items-center justify-center border-2 border-white mt-6">
-                      {user.photo ? (
+                      {player?.photo ? (
                         <img
-                          src={user.photo || "/placeholder.svg?height=96&width=96"}
-                          alt={user.name}
+                          src={player.photo || "/placeholder.svg"}
+                          alt={player.firstName}
                           className="w-full h-full rounded-full object-cover"
                         />
                       ) : (
@@ -115,11 +112,13 @@ export default function PlayerCardPage() {
                       )}
                     </div>
 
-                    <h2 className="text-xl font-bold text-center">{user.name}</h2>
+                    <h2 className="text-xl font-bold text-center">
+                      {player ? `${player.firstName} ${player.lastName}` : user.name}
+                    </h2>
                     <p className="text-gray-300 mb-1 text-sm">{player?.position || "Jugador"}</p>
                     <div className="flex items-center justify-center space-x-2 mb-2">
                       <span className="bg-white text-black text-lg font-bold w-7 h-7 rounded-full flex items-center justify-center">
-                        {player?.number || "10"}
+                        {player?.number || ""}
                       </span>
                       <span className="text-sm">{team?.name || "Equipo Parley"}</span>
                     </div>
@@ -132,10 +131,6 @@ export default function PlayerCardPage() {
                       <div className="flex items-center">
                         <Calendar className="w-3 h-3 mr-2 text-gray-300" />
                         <span className="text-xs">Temporada 2023</span>
-                      </div>
-                      <div className="flex items-center">
-                        <MapPin className="w-3 h-3 mr-2 text-gray-300" />
-                        <span className="text-xs">Predio Parley</span>
                       </div>
                     </div>
 
@@ -176,19 +171,19 @@ export default function PlayerCardPage() {
                       <div className="grid grid-cols-2 gap-2">
                         <div className="bg-gray-800 p-2 rounded">
                           <p className="text-xs text-gray-400">Goles</p>
-                          <p className="text-base font-bold">{player?.stats.goals || 0}</p>
+                          <p className="text-base font-bold">{player?.stats?.goals || 0}</p>
                         </div>
                         <div className="bg-gray-800 p-2 rounded">
                           <p className="text-xs text-gray-400">Asistencias</p>
-                          <p className="text-base font-bold">{player?.stats.assists || 0}</p>
+                          <p className="text-base font-bold">{player?.stats?.assists || 0}</p>
                         </div>
                         <div className="bg-gray-800 p-2 rounded">
                           <p className="text-xs text-gray-400">T. Amarillas</p>
-                          <p className="text-base font-bold">{player?.stats.yellowCards || 0}</p>
+                          <p className="text-base font-bold">{player?.stats?.yellowCards || 0}</p>
                         </div>
                         <div className="bg-gray-800 p-2 rounded">
                           <p className="text-xs text-gray-400">T. Rojas</p>
-                          <p className="text-base font-bold">{player?.stats.redCards || 0}</p>
+                          <p className="text-base font-bold">{player?.stats?.redCards || 0}</p>
                         </div>
                       </div>
                     </div>
@@ -200,23 +195,15 @@ export default function PlayerCardPage() {
                           <Mail className="w-3 h-3 mr-2 text-gray-300" />
                           <span className="text-xs">{user.email}</span>
                         </div>
-                        <div className="flex items-center">
-                          <Phone className="w-3 h-3 mr-2 text-gray-300" />
-                          <span className="text-xs">+54 11 1234-5678</span>
-                        </div>
                       </div>
                     </div>
 
                     <div className="bg-gray-700 p-2 rounded-lg">
-                      <h4 className="text-xs font-semibold mb-1">Información Médica</h4>
+                      <h4 className="text-xs font-semibold mb-1">Información Adicional</h4>
                       <div className="space-y-1">
                         <div className="flex items-start">
                           <Info className="w-3 h-3 mr-2 text-gray-300 mt-0.5" />
-                          <span className="text-xs">Grupo sanguíneo: A+</span>
-                        </div>
-                        <div className="flex items-start">
-                          <Info className="w-3 h-3 mr-2 text-gray-300 mt-0.5" />
-                          <span className="text-xs">Contacto: Juan Pérez - +54 11 8765-4321</span>
+                          <span className="text-xs">DNI: {player?.dni || "No disponible"}</span>
                         </div>
                       </div>
                     </div>

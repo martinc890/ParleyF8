@@ -1,34 +1,54 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
+// Función para combinar clases de Tailwind
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Función para generar contraseñas aleatorias
-export function generatePassword(length = 10): string {
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+"
-  let password = ""
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * charset.length)
-    password += charset[randomIndex]
+// Función para generar una contraseña basada en el nombre y un número aleatorio
+export function generatePassword(name: string, length = 8): string {
+  // Limpiar el nombre (quitar espacios, acentos, etc.)
+  const cleanName = name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "")
+    .substring(0, 5)
+
+  // Generar número aleatorio
+  const randomNum = Math.floor(Math.random() * 90 + 10)
+
+  // Generar caracteres aleatorios para completar la longitud
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+  let randomChars = ""
+
+  for (let i = 0; i < length - cleanName.length - 2; i++) {
+    randomChars += chars.charAt(Math.floor(Math.random() * chars.length))
   }
-  return password
+
+  return `${cleanName}${randomNum}${randomChars}`
 }
 
-// Función para generar un código QR (simulado)
-export async function generateQRCode(data: string): Promise<string> {
-  // En una implementación real, esto generaría un QR real
-  // Por ahora, devolvemos una URL de placeholder
-  return `/placeholder.svg?height=200&width=200&text=${encodeURIComponent(data)}`
+// Función para traducir posiciones de jugadores
+export function translatePosition(position: string): string {
+  const positions: Record<string, string> = {
+    goalkeeper: "Portero",
+    defender: "Defensa",
+    midfielder: "Mediocampista",
+    forward: "Delantero",
+    coach: "Entrenador",
+  }
+
+  return positions[position] || position
 }
 
 // Función para formatear fecha
 export function formatDate(dateString: string): string {
   const date = new Date(dateString)
   return date.toLocaleDateString("es-ES", {
-    day: "numeric",
-    month: "long",
+    day: "2-digit",
+    month: "2-digit",
     year: "numeric",
   })
 }
@@ -57,13 +77,9 @@ export function isValidEmail(email: string): boolean {
   return emailRegex.test(email)
 }
 
-// Función para validar número de jugador
-export function isValidPlayerNumber(number: number): boolean {
-  return number >= 1 && number <= 99
-}
-
-// Función para validar DNI
-export function isValidDNI(dni: string): boolean {
-  // Implementar según el formato de DNI requerido
-  return dni.length >= 7 && dni.length <= 10
+// Función para generar un código QR (simulado)
+export async function generateQRCode(data: string): Promise<string> {
+  // En una implementación real, esto generaría un QR real
+  // Por ahora, devolvemos una URL de placeholder
+  return `/placeholder.svg?height=200&width=200&text=${encodeURIComponent(data)}`
 }

@@ -14,6 +14,7 @@ export default function PlayoffBracket() {
   const [quarterFinals, setQuarterFinals] = useState<any[]>([])
   const [semiFinals, setSemiFinals] = useState<any[]>([])
   const [final, setFinal] = useState<any[]>([])
+  const [thirdPlace, setThirdPlace] = useState<any[]>([])
   const [selectedMatch, setSelectedMatch] = useState<null | number>(null)
   const [loading, setLoading] = useState(true)
 
@@ -23,6 +24,7 @@ export default function PlayoffBracket() {
       const quarterMatches = getMatchesByPhase("quarter") || []
       const semiMatches = getMatchesByPhase("semi") || []
       const finalMatches = getMatchesByPhase("final") || []
+      const thirdPlaceMatches = getMatchesByPhase("thirdplace") || []
 
       // Si no hay partidos de playoffs, crear placeholders
       if (quarterMatches.length === 0 && semiMatches.length === 0 && finalMatches.length === 0) {
@@ -43,9 +45,13 @@ export default function PlayoffBracket() {
         // Crear partido final
         const placeholderFinal = [createPlaceholderMatch(7, "Ganador SF1", "Ganador SF2")]
 
+        // Crear partido por el tercer puesto
+        const placeholderThirdPlace = [createPlaceholderMatch(8, "Perdedor SF1", "Perdedor SF2")]
+
         setQuarterFinals(placeholderQuarters)
         setSemiFinals(placeholderSemis)
         setFinal(placeholderFinal)
+        setThirdPlace(placeholderThirdPlace)
       } else {
         // Usar los partidos reales si existen
         setQuarterFinals(
@@ -73,6 +79,12 @@ export default function PlayoffBracket() {
             ? finalMatches.map(enrichMatch)
             : [createPlaceholderMatch(7, "Ganador SF1", "Ganador SF2")],
         )
+
+        setThirdPlace(
+          thirdPlaceMatches.length > 0
+            ? thirdPlaceMatches.map(enrichMatch)
+            : [createPlaceholderMatch(8, "Perdedor SF1", "Perdedor SF2")],
+        )
       }
 
       setLoading(false)
@@ -92,10 +104,12 @@ export default function PlayoffBracket() {
       ]
 
       const placeholderFinal = [createPlaceholderMatch(7, "Ganador SF1", "Ganador SF2")]
+      const placeholderThirdPlace = [createPlaceholderMatch(8, "Perdedor SF1", "Perdedor SF2")]
 
       setQuarterFinals(placeholderQuarters)
       setSemiFinals(placeholderSemis)
       setFinal(placeholderFinal)
+      setThirdPlace(placeholderThirdPlace)
       setLoading(false)
     }
   }, [])
@@ -270,65 +284,127 @@ export default function PlayoffBracket() {
                   </div>
                 </div>
 
-                {/* Final */}
+                {/* Final and Third Place */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-center mb-6">Final</h3>
-                  <div className="flex justify-center items-center h-[200px]">
-                    {final.map((match) => (
-                      <div
-                        key={match.id}
-                        className={`p-4 border rounded-lg transition-colors ${
-                          selectedMatch === match.id ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
-                        }`}
-                        onClick={() => setSelectedMatch(match.id)}
-                      >
-                        <div className="text-xs text-muted-foreground mb-2">
-                          {match.date} • {match.time}
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Image
-                                src={match.homeTeam.logo || "/placeholder.svg?height=24&width=24"}
-                                width={24}
-                                height={24}
-                                alt={match.homeTeam.name}
-                                className="team-logo"
-                              />
-                              <span className="font-medium">{match.homeTeam.name}</span>
+                  <h3 className="text-lg font-semibold text-center mb-6">Finales</h3>
+                  <div className="flex flex-col items-center justify-center gap-8">
+                    {/* Final */}
+                    <div className="w-full">
+                      <h4 className="text-sm font-medium text-center mb-2">Final</h4>
+                      {final.map((match) => (
+                        <div
+                          key={match.id}
+                          className={`p-4 border rounded-lg transition-colors ${
+                            selectedMatch === match.id ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
+                          }`}
+                          onClick={() => setSelectedMatch(match.id)}
+                        >
+                          <div className="text-xs text-muted-foreground mb-2">
+                            {match.date} • {match.time}
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Image
+                                  src={match.homeTeam.logo || "/placeholder.svg?height=24&width=24"}
+                                  width={24}
+                                  height={24}
+                                  alt={match.homeTeam.name}
+                                  className="team-logo"
+                                />
+                                <span className="font-medium">{match.homeTeam.name}</span>
+                              </div>
+                              {match.completed && <span className="font-bold">{match.homeTeam.score}</span>}
                             </div>
-                            {match.completed && <span className="font-bold">{match.homeTeam.score}</span>}
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Image
-                                src={match.awayTeam.logo || "/placeholder.svg?height=24&width=24"}
-                                width={24}
-                                height={24}
-                                alt={match.awayTeam.name}
-                                className="team-logo"
-                              />
-                              <span className="font-medium">{match.awayTeam.name}</span>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Image
+                                  src={match.awayTeam.logo || "/placeholder.svg?height=24&width=24"}
+                                  width={24}
+                                  height={24}
+                                  alt={match.awayTeam.name}
+                                  className="team-logo"
+                                />
+                                <span className="font-medium">{match.awayTeam.name}</span>
+                              </div>
+                              {match.completed && <span className="font-bold">{match.awayTeam.score}</span>}
                             </div>
-                            {match.completed && <span className="font-bold">{match.awayTeam.score}</span>}
                           </div>
+                          {match.completed ? (
+                            <div className="mt-2 text-center">
+                              <Badge variant="secondary" className="text-xs">
+                                {match.homeTeam.score > match.awayTeam.score
+                                  ? match.homeTeam.name + " campeón"
+                                  : match.awayTeam.name + " campeón"}
+                              </Badge>
+                            </div>
+                          ) : (
+                            <div className="mt-2 text-center">
+                              <Badge variant="outline" className="text-xs">
+                                Próximamente
+                              </Badge>
+                            </div>
+                          )}
                         </div>
-                        {!match.completed && (
-                          <div className="mt-2 text-center">
-                            <Badge variant="outline" className="text-xs">
-                              Próximamente
-                            </Badge>
+                      ))}
+                    </div>
+
+                    {/* Third Place */}
+                    <div className="w-full">
+                      <h4 className="text-sm font-medium text-center mb-2">Tercer Puesto</h4>
+                      {thirdPlace.map((match) => (
+                        <div
+                          key={match.id}
+                          className={`p-4 border rounded-lg transition-colors ${
+                            selectedMatch === match.id ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
+                          }`}
+                          onClick={() => setSelectedMatch(match.id)}
+                        >
+                          <div className="text-xs text-muted-foreground mb-2">
+                            {match.date} • {match.time}
                           </div>
-                        )}
-                      </div>
-                    ))}
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Image
+                                  src={match.homeTeam.logo || "/placeholder.svg?height=24&width=24"}
+                                  width={24}
+                                  height={24}
+                                  alt={match.homeTeam.name}
+                                  className="team-logo"
+                                />
+                                <span className="font-medium">{match.homeTeam.name}</span>
+                              </div>
+                              {match.completed && <span className="font-bold">{match.homeTeam.score}</span>}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Image
+                                  src={match.awayTeam.logo || "/placeholder.svg?height=24&width=24"}
+                                  width={24}
+                                  height={24}
+                                  alt={match.awayTeam.name}
+                                  className="team-logo"
+                                />
+                                <span className="font-medium">{match.awayTeam.name}</span>
+                              </div>
+                              {match.completed && <span className="font-bold">{match.awayTeam.score}</span>}
+                            </div>
+                          </div>
+                          {match.completed && (
+                            <div className="mt-2 text-center">
+                              <Badge variant="outline" className="text-xs">
+                                {match.homeTeam.score > match.awayTeam.score
+                                  ? match.homeTeam.name + " tercer puesto"
+                                  : match.awayTeam.name + " tercer puesto"}
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Connecting lines for the bracket */}
-              <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-                {/* Add SVG or CSS for bracket lines if needed */}
               </div>
             </div>
           </div>
@@ -349,7 +425,9 @@ export default function PlayoffBracket() {
           <CardContent>
             <div className="p-4">
               {(() => {
-                const match = [...quarterFinals, ...semiFinals, ...final].find((m) => m.id === selectedMatch)
+                const match = [...quarterFinals, ...semiFinals, ...final, ...thirdPlace].find(
+                  (m) => m.id === selectedMatch,
+                )
                 if (!match) return null
 
                 return (
